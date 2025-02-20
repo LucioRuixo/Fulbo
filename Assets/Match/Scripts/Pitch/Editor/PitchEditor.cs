@@ -14,7 +14,7 @@ namespace Fulbo.CustomEditors
 
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("Update")) (target as Pitch).Initialize();
+            if (GUILayout.Button("Update")) (target as Pitch).Initialize(null);
         }
     }
 }

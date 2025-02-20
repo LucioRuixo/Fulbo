@@ -34,7 +34,6 @@ namespace Fulbo.Match
         private Player player;
 
         private InputState state;
-        public InputState State => state;
 
         public event Action<ISelectable> SelectedEvent;
 

@@ -1,12 +1,17 @@
 namespace Fulbo.Match
 {
-    public interface ISelectable { }
+    public interface ISelectable
+    {
+        public void OnSelected();
+
+        public void OnUnselected();
+    }
 
     public static class ISelectableExtensions
     {
         public static MatchPlayer AsPlayer(this ISelectable selectable)
         {
-            MatchPlayerBody body = selectable as MatchPlayerBody;
+            MPBody body = selectable as MPBody;
             return body != null ? body.Player : null;
         }
 

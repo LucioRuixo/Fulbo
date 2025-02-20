@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Fulbo.Match
@@ -6,7 +7,7 @@ namespace Fulbo.Match
     public class Team : MonoBehaviour
     {
         #region Constants
-        public const int PlayerCount = 1;
+        public const int PlayerCount = 11;
         #endregion
 
         private Match match;
@@ -19,7 +20,14 @@ namespace Fulbo.Match
         public Goal DefendedGoal { get; private set; }
         public Goal AttackedGoal { get; private set; }
 
+        public Vector3 AttackDirection { get; private set; }
+
+        public Team Rival => match.GetRival(Side);
+
         public List<MatchPlayer> Players { get; private set; } = new List<MatchPlayer>();
+
+        private static Material homeMaterial;
+        private static Material awayMaterial;
 
         public void Initialize(Sides side, Match match, GameObject playerPrefab)
         {
@@ -30,6 +38,7 @@ namespace Fulbo.Match
             AttackedHalf = match.GetAttackedHalfBySide(Side);
             DefendedGoal = match.GetDefendedGoalBySide(Side);
             AttackedGoal = match.GetAttackedGoalBySide(Side);
+            AttackDirection = Side == Sides.Home ? Vector3.right : Vector3.left;
 
             SpawnPlayers(playerPrefab);
         }
@@ -39,12 +48,20 @@ namespace Fulbo.Match
             for (int i = 0; i < PlayerCount; i++)
             {
                 MatchPlayer player = Instantiate(playerPrefab, transform).GetComponent<MatchPlayer>();
-                player.Initialize(this, match);
+                player.Initialize(i, this, match);
                 player.transform.position = player.StartSquare.Position;
+                player.name = $"{Side} | {i}";
                 Players.Add(player);
             }
         }
 
-        public static Color GetColor(Sides side) => side == Sides.Home ? Color.blue : side == Sides.Away ? Color.red : Color.white;
+        public List<MatchPlayer> GetPlayers(MatchPlayer[] exclude = null) => Players.Where(player => exclude == null || !exclude.Contains(player)).ToList();
+
+        public static Material GetMaterial(Sides side)
+        {
+            if (side == Sides.Home) return homeMaterial ??= Resources.Load<Material>("Home");
+            else if (side == Sides.Away) return awayMaterial ??= Resources.Load<Material>("Away");
+            else return null;
+        }
     }
 }

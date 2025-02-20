@@ -1,0 +1,20 @@
+MENTAL:
+- Composture
+- Determination
+- Solidarity
+- Charisma ? (match != personal)
+
+PHYSICAL:
+- Speed
+- Strength
+- Jump
+- Endurance
+
+ATTACK
+- Shooting
+- Passing
+- Dribbling
+
+DEFENSE
+- Marking
+- Tackling

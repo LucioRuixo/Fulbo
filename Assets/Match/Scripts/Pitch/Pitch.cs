@@ -44,23 +44,29 @@ namespace Fulbo.Match
         [SerializeField] private Goal leftGoal;
         [SerializeField] private Goal rightGoal;
 
-        private float width;
         private float squareStep;
         private Vector3 topLeft;
         private Vector3 bottomRight;
+
+        private Match match;
         
         private float GoalAreaWidth => useRealAreaDimensions ? RealGoalAreaWidth : goalAreaWidthInSquares * squareStep;
         private float GoalAreaLength => useRealAreaDimensions ? RealGoalAreaLength : goalAreaLengthInSquares * squareStep;
         private float PenaltyAreaWidth => useRealAreaDimensions ? RealPenaltyAreaWidth : penaltyAreaWidthInSquares * squareStep;
         private float PenaltyAreaLength => useRealAreaDimensions ? RealPenaltyAreaLength : penaltyAreaLengthInSquares * squareStep;
 
+        public float Length => length;
+        public float Width { get; private set; }
+
         public Squares Squares => squareContainer;
 
         public Goal LeftGoal => leftGoal;
         public Goal RightGoal => rightGoal;
 
-        public void Initialize()
+        public void Initialize(Match match)
         {
+            this.match = match;
+
             ScalePitch();
             SpawnSquares();
             SpawnLines();
@@ -69,11 +75,11 @@ namespace Fulbo.Match
 
         private void ScalePitch()
         {
-            width = (length / squareCount.x) * squareCount.y;
-            pitchMesh.transform.localScale = new Vector3(length * PlaneMeshScaleMultiplier, 0f, width * PlaneMeshScaleMultiplier);
+            Width = (length / squareCount.x) * squareCount.y;
+            pitchMesh.transform.localScale = new Vector3(length * PlaneMeshScaleMultiplier, 0f, Width * PlaneMeshScaleMultiplier);
 
-            topLeft = new Vector3(-length.Half(), PitchY, width.Half());
-            bottomRight = new Vector3(length.Half(), PitchY, -width.Half());
+            topLeft = new Vector3(-length.Half(), PitchY, Width.Half());
+            bottomRight = new Vector3(length.Half(), PitchY, -Width.Half());
         }
 
         private void SpawnSquares()
@@ -99,6 +105,7 @@ namespace Fulbo.Match
                 {
                     Square square = Instantiate(squarePrefab, new Vector3(currentX, SquareY, currentZ), Quaternion.identity, squareContainer.transform).GetComponent<Square>();
                     square.transform.localScale = Vector3.one * squareSize;
+                    square.name = $"{x}, {y}";
 
                     (squareArray[x, y] = square).Initialize(x, y, Squares);
 
@@ -109,7 +116,7 @@ namespace Fulbo.Match
                 currentZ -= squareStep;
             }
 
-            squareContainer.Initialize(squareCount, squareArray);
+            squareContainer.Initialize(squareCount, squareArray, match);
         }
 
         private void SpawnLines()
@@ -132,7 +139,7 @@ namespace Fulbo.Match
             Transform rightGoallineGO = Instantiate(linePrefab, new Vector3(bottomRight.x, LineY, 0f), Quaternion.identity, lineContainer).transform;
             Transform halfwayLine =     Instantiate(linePrefab, new Vector3(           0f, LineY, 0f), Quaternion.identity, lineContainer).transform;
             leftGoallineGO.localScale = rightGoallineGO.localScale = halfwayLine.localScale = 
-                new Vector3(lineWidth * PlaneMeshScaleMultiplier, 1f, (width + lineWidth) * PlaneMeshScaleMultiplier);
+                new Vector3(lineWidth * PlaneMeshScaleMultiplier, 1f, (Width + lineWidth) * PlaneMeshScaleMultiplier);
 
             // Goal areas
             Transform leftGoalArea1 = Instantiate(linePrefab, new Vector3(topLeft.x + GoalAreaLength.Half(), LineY,  GoalAreaWidth.Half()), Quaternion.identity, lineContainer).transform;
