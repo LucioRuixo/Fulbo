@@ -9887,7 +9887,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b8c80f129089d8469854f5d62786a5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 1
+  speed: 3
 --- !u!1 &687902402
 GameObject:
   m_ObjectHideFlags: 0
@@ -16214,6 +16214,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13f3c13f3a900344c89d688b3b5bc196, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 701386942}
   actionMenu: {fileID: 512097470}
 --- !u!1 &1110885416
 GameObject:

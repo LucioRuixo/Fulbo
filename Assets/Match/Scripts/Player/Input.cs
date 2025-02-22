@@ -31,6 +31,16 @@ namespace Fulbo.Match
         }
         #endregion
 
+        #region Enumerators
+        public enum Buttons
+        {
+            None = -1,
+            Confirm,
+            Cancel,
+            COUNT
+        }
+        #endregion
+
         private Player player;
 
         private InputState state;
@@ -43,24 +53,23 @@ namespace Fulbo.Match
         {
             state.Refresh();
 
-            ThrowRaycast();
             PollMouseInput();
+            PollKeyboardInput();
         }
-
-        #region Raycast
-        private void ThrowRaycast()
-        {
-            Ray ray = player.View.ScreenPointToRay(UnityInput.mousePosition);
-            state.pointed = 
-                Physics.Raycast(ray, out RaycastHit hitInfo, MaxRaycastDistance, LayerMask.GetMask(MatchSelectableLayerName)) && hitInfo.collider.TryGetComponent(out ISelectable pointed) ? 
-                pointed : null;
-        }
-        #endregion
 
         #region Mouse Input
         private void PollMouseInput()
         {
+            ThrowRaycast();
             PollLeftClickInput();
+        }
+
+        private void ThrowRaycast()
+        {
+            Ray ray = player.View.ScreenPointToRay(UnityInput.mousePosition);
+            state.pointed =
+                Physics.Raycast(ray, out RaycastHit hitInfo, MaxRaycastDistance, LayerMask.GetMask(MatchSelectableLayerName)) && hitInfo.collider.TryGetComponent(out ISelectable pointed) ?
+                pointed : null;
         }
 
         private void PollLeftClickInput()
@@ -69,6 +78,43 @@ namespace Fulbo.Match
             {
                 state.selected = state.pointed;
                 if (state.selected != null) SelectedEvent?.Invoke(state.selected);
+            }
+        }
+        #endregion
+
+        #region Keyboard Input
+        public event Action<int> NumberPressedEvent;
+        public event Action<Buttons> ButtonPressedEvent;
+
+        private void PollKeyboardInput()
+        {
+            PollNumberInput();
+            PollButtonInput();
+        }
+
+        private void PollNumberInput()
+        {
+            for (int numberCode = (int)KeyCode.Alpha1; numberCode <= (int)KeyCode.Alpha9; numberCode++)
+            {
+                if (UnityInput.GetKeyDown((KeyCode)numberCode))
+                {
+                    int number = numberCode - (int)KeyCode.Alpha0;
+                    NumberPressedEvent?.Invoke(number);
+                    return;
+                }
+            }
+        }
+
+        private void PollButtonInput()
+        {
+            for (int i = 0; i < (int)Buttons.COUNT; i++)
+            {
+                Buttons button = (Buttons)i;
+                if (UnityInput.GetButtonDown(button.ToString()))
+                {
+                    ButtonPressedEvent?.Invoke(button);
+                    return;
+                }
             }
         }
         #endregion

@@ -15,11 +15,10 @@ namespace Fulbo.Match
 
         [SerializeField] private Match match;
 
-        private Input input;
-
         private Ball Ball => match.Ball;
 
         public MatchPlayer SelectedPlayer { get; private set; }
+        public Input Input { get; private set; }
 
         public Sides Side => Sides.Home;
         public Vector3 Position => mainCamera.transform.position;
@@ -41,16 +40,16 @@ namespace Fulbo.Match
 
         private void OnDestroy()
         {
-            input.SelectedEvent -= OnInputSelection;
+            Input.SelectedEvent -= OnInputSelection;
             Ball.DribblerSetEvent -= OnDribblerSet;
         }
 
-        private void Update() => input.Update();
+        private void Update() => Input.Update();
 
         private void InitializeInput()
         {
-            input = new Input(this);
-            input.SelectedEvent += OnInputSelection;
+            Input = new Input(this);
+            Input.SelectedEvent += OnInputSelection;
         }
 
         private void SelectPlayer(MatchPlayer player)
