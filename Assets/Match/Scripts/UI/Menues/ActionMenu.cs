@@ -15,7 +15,7 @@ namespace Fulbo.Match.UI
 
         [SerializeField] private Button confirmButton;
 
-        private MPActions selectedAction = MPActions.None;
+        private MPActions chosenAction = MPActions.None;
 
         public event Action<MPActions> ActionChosenEvent;
         public event Action<MPActions> ActionCanceledEvent;
@@ -23,6 +23,8 @@ namespace Fulbo.Match.UI
 
         public override void Enable()
         {
+            chosenAction = MPActions.None;
+
             actionButtonsContainer.SetActive(true);
             navigationButtonsContainer.SetActive(false);
 
@@ -42,33 +44,40 @@ namespace Fulbo.Match.UI
 
         public void OnAction(int action)
         {
-            selectedAction = (MPActions)action;
+            chosenAction = (MPActions)action;
 
             actionButtonsContainer.SetActive(false);
             navigationButtonsContainer.gameObject.SetActive(true);
 
-            ActionChosenEvent?.Invoke(selectedAction);
+            ActionChosenEvent?.Invoke(chosenAction);
         }
 
         public void OnCancel()
         {
-            selectedAction = MPActions.None;
+            chosenAction = MPActions.None;
 
             navigationButtonsContainer.gameObject.SetActive(false);
             actionButtonsContainer.SetActive(true);
 
-            ActionCanceledEvent?.Invoke(selectedAction);
+            ActionCanceledEvent?.Invoke(chosenAction);
         }
 
-        public void OnConfirm() => ActionConfirmedEvent?.Invoke(selectedAction);
+        public void OnConfirm() => ActionConfirmedEvent?.Invoke(chosenAction);
 
         public void SetConfirmButtonEnabled(bool enabled) => confirmButton.interactable = enabled;
 
         #region Handlers
-        private void OnNumberPressed(int number) => OnAction(number - 1);
+        private void OnNumberPressed(int number)
+        {
+            if (chosenAction != MPActions.None) return;
+
+            OnAction(number - 1);
+        }
 
         private void OnButtonPressed(Buttons button)
         {
+            if (chosenAction == MPActions.None) return;
+
             switch (button)
             {
                 case Buttons.Confirm:

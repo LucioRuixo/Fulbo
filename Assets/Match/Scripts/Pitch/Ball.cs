@@ -20,9 +20,20 @@ namespace Fulbo.Match
             if (TargetPosition.HasValue) transform.position = TargetPosition.Value;
         }
 
-        private void OnDestroy() => match.InitialPlayerSetEvent -= SetDribbler;
+        private void OnDestroy()
+        {
+            match.InitialPlayerSetEvent -= SetDribbler;
+            match.TurnManager.PassEvent -= OnPass;
+            match.TurnManager.ShotEvent -= OnShot;
+        }
 
-        public void Initialize(Match match) => (this.match = match).InitialPlayerSetEvent += SetDribbler;
+        public void Initialize(Match match)
+        {
+            this.match = match;
+            match.InitialPlayerSetEvent += SetDribbler;
+            match.TurnManager.PassEvent += OnPass;
+            match.TurnManager.ShotEvent += OnShot;
+        }
 
         private void SetDribbler(MatchPlayer dribbler)
         {
@@ -33,16 +44,11 @@ namespace Fulbo.Match
             }
 
             Dribbler = dribbler;
-            Dribbler.Brain.GetAction<MPA_Pass>().PassEvent += OnPass;
-            Dribbler.Brain.GetAction<MPA_Shoot>().ShotEvent += OnShot;
-
             DribblerSetEvent?.Invoke(Dribbler);
         }
 
         private void ClearDribbler()
         {
-            Dribbler.Brain.GetAction<MPA_Pass>().PassEvent -= OnPass;
-            Dribbler.Brain.GetAction<MPA_Shoot>().ShotEvent -= OnShot;
             Dribbler = null;
 
             DribblerClearedEvent?.Invoke();

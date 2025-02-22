@@ -49,9 +49,12 @@ namespace Fulbo.Match
         private Match match;
 
         public Brain Brain { get; private set; }
+        public MPHUD HUD => hud;
 
         public Vector3 Position { get => transform.position; set => transform.position = value; }
         public Vector3 BallReference => ballReference.position;
+
+        public bool IsGK { get; private set; }
 
         public Team Team { get; private set; }
         public Sides Side => Team.Side;
@@ -116,6 +119,7 @@ namespace Fulbo.Match
             // Player data
             Index = index;
             Team = team;
+            IsGK = Index == 0;
 
             ID = new PlayerID(Side, Index);
 

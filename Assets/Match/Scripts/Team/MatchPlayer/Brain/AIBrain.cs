@@ -25,7 +25,7 @@ namespace Fulbo.Match
         protected override void ProcessChooseAction()
         {
             OnActionChosen(GetAction<MPA_Move>());
-            TrySelectRandomAdjacentSquare();
+            if (!player.IsGK) TrySelectRandomAdjacentSquare();
             OnActionConfirmed();
         }
 

@@ -19,7 +19,7 @@ namespace Fulbo.Match
         public override bool Feed(ISelectable selection)
         {
             Square square = selection.AsSquare();
-            if (!square || !validSquares.Contains(square)) return false;
+            if (!square || !validSquares.Contains(square)) return targetSquare;
 
             EnqueueMove(square.ID);
 

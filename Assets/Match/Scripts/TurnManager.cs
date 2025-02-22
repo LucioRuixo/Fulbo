@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static UnityEditor.ShaderData;
 
 namespace Fulbo.Match
 {
@@ -27,10 +28,15 @@ namespace Fulbo.Match
 
         private Dictionary<Phases, List<MatchPlayer>> phasePlayers;
 
+        private Action processActionOnPhaseEnd;
+
         private float WaitInterval => 1f / speed;
         private Player Player => match.Player;
 
         private event Action<MatchPlayer> PlayerActionConfirmedEvent;
+
+        public event Action<MatchPlayer> PassEvent;
+        public event Action ShotEvent;
         public event Action<Phases> PhaseEndedEvent;
         public event Action<int> TurnEndedEvent;
 
@@ -75,6 +81,7 @@ namespace Fulbo.Match
                 for (int i = 0; i < phasePlayers.Count; i++) yield return StartCoroutine(Phase((Phases)i, phasePlayers[(Phases)i]));
 
                 turn++;
+
                 TurnEndedEvent?.Invoke(turn);
             }
         }
@@ -101,6 +108,9 @@ namespace Fulbo.Match
             foreach (MatchPlayer player in players) player.Brain.ExecuteAction();
 
             PlayerActionConfirmedEvent = null;
+
+            processActionOnPhaseEnd?.Invoke();
+            processActionOnPhaseEnd = null;
 
             Debug.Log(phase);
             PhaseEndedEvent?.Invoke(phase);
@@ -132,12 +142,25 @@ namespace Fulbo.Match
             if (phasePlayers[Phases.Teammates] != null)
             {
                 phasePlayers[Phases.Teammates].Remove(dribbler);
-                if (selectedPlayer) phasePlayers[Phases.Teammates].Add(selectedPlayer);
+                if (selectedPlayer)
+                {
+                    selectedPlayer.Brain.GetAction<MPA_Pass>().PassEvent -= OnPass;
+                    selectedPlayer.Brain.GetAction<MPA_Shoot>().ShotEvent -= OnShot;
+
+                    phasePlayers[Phases.Teammates].Add(selectedPlayer);
+                }
             }
 
             selectedPlayer = dribbler;
             phasePlayers[Phases.Dribbler] = new List<MatchPlayer>() { selectedPlayer };
+
+            selectedPlayer.Brain.GetAction<MPA_Pass>().PassEvent += OnPass;
+            selectedPlayer.Brain.GetAction<MPA_Shoot>().ShotEvent += OnShot;
         }
+
+        private void OnPass(MatchPlayer receiver) => PassEvent?.Invoke(receiver);
+
+        private void OnShot() => ShotEvent?.Invoke();
 
         private void OnPlayerActionConfirmed(MatchPlayer player)
         {
