@@ -5,14 +5,19 @@ namespace Fulbo.Match
 {
     public class Square : MonoBehaviour, ISelectable
     {
+        private MeshRenderer mesh;
+        private Color color;
+
+        public bool Highlighted { get; private set; } = false;
+
         public int X { get; private set; }
         public int Y { get; private set; }
         public Vector2Int ID { get; private set; }
 
         public Vector3 Position => transform.position;
-        public float Size => Container.SquareSize;
+        public float Size => Board.SquareSize;
 
-        public Squares Container { get; private set; }
+        public Board Board { get; private set; }
 
         public MatchPlayer HomePlayer { get; private set; }
         public MatchPlayer AwayPlayer { get; private set; }
@@ -21,23 +26,21 @@ namespace Fulbo.Match
 
         private void OnDestroy()
         {
-            if (Container) Container.PlayerMovedToSquareEvent += OnPlayerMovedToSquare;
+            if (Board) Board.PlayerMovedToSquareEvent += OnPlayerMovedToSquare;
         }
 
-        public void Initialize(int x, int y, Squares container)
+        public void Initialize(int x, int y, Board container)
         {
+            color = (mesh = GetComponent<MeshRenderer>()).material.color;
+
             X = x;
             Y = y;
             ID = new Vector2Int(X, Y);
 
-            (Container = container).PlayerMovedToSquareEvent += OnPlayerMovedToSquare;
+            (Board = container).PlayerMovedToSquareEvent += OnPlayerMovedToSquare;
         }
 
         private bool IsInSquare(MatchPlayer player) => player == HomePlayer || player == AwayPlayer;
-
-        private MatchPlayer GetPlayer(Sides side) => side == Sides.Home ? HomePlayer : AwayPlayer;
-
-        private MatchPlayer OtherPlayer(Sides side) => side == Sides.Home ? AwayPlayer : HomePlayer;
 
         private Vector3 CalculateOffsetPosition(MatchPlayer player)
         {
@@ -56,7 +59,7 @@ namespace Fulbo.Match
             if (side == Sides.Home) HomePlayer = player;
             else AwayPlayer = player;
 
-            MatchPlayer otherPlayer = OtherPlayer(player.Side);
+            MatchPlayer otherPlayer = GetOtherPlayer(player.Side);
             if (!otherPlayer) player.Position = Position;
             else
             {
@@ -66,6 +69,28 @@ namespace Fulbo.Match
 
             PlayerAddedEvent?.Invoke(this, player);
         }
+
+        public MatchPlayer GetPlayer(Sides side) => side == Sides.Home ? HomePlayer : AwayPlayer;
+
+        public MatchPlayer GetOtherPlayer(Sides side) => side == Sides.Home ? AwayPlayer : HomePlayer;
+
+        public void SetHighlight(bool highlight)
+        {
+            mesh.material.color = highlight ? color + Color.red : color;
+            Highlighted = highlight;
+        }
+
+        #region ISelectable
+        public void OnSelected()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnUnselected()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
 
         #region Handlers
         private void OnPlayerMovedToSquare(Square square, MatchPlayer player)
@@ -82,18 +107,6 @@ namespace Fulbo.Match
                 AwayPlayer = null;
                 if (HomePlayer) HomePlayer.Position = Position;
             }
-        }
-        #endregion
-
-        #region ISelectable
-        public void OnSelected()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void OnUnselected()
-        {
-            throw new NotImplementedException();
         }
         #endregion
     }

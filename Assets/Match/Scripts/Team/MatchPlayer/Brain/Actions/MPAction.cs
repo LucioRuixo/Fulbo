@@ -8,29 +8,35 @@ namespace Fulbo.Match
     public enum MPActions
     {
         None = -1,
-        Move
+        Move, 
+        Pass, 
+        Shoot
     }
     #endregion
 
     public abstract class MPAction : MonoBehaviour
     {
         protected MatchPlayer player;
-        protected Squares squares;
+        protected Board board;
         protected MPHUD hud;
 
-        public void Initialize(MatchPlayer player, Squares squares, MPHUD hud)
+        public abstract bool RequiresFeed { get; }
+
+        public void Initialize(MatchPlayer player, Board board, MPHUD hud)
         {
             this.player = player;
-            this.squares = squares;
+            this.board = board;
             this.hud = hud;
         }
 
         public virtual bool Feed(ISelectable selection) => true;
 
-        public virtual void OnChosen() { }
+        public virtual void OnChosen(bool completeUI) { }
 
         public virtual void OnUnchosen() { }
 
         public virtual void OnExecuted() { }
+
+        public virtual void OnExit() { }
     }
 }

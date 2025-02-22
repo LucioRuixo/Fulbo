@@ -22,34 +22,51 @@ namespace Fulbo.Match
 
         private int turn = 0;
 
+        private Match match;
         private MatchPlayer selectedPlayer;
 
         private Dictionary<Phases, List<MatchPlayer>> phasePlayers;
 
         private float WaitInterval => 1f / speed;
+        private Player Player => match.Player;
 
+        private event Action<MatchPlayer> PlayerActionConfirmedEvent;
         public event Action<Phases> PhaseEndedEvent;
         public event Action<int> TurnEndedEvent;
 
-        private void InitializePhasePlayers(MatchPlayer selectedPlayer)
+        private void Awake()
         {
-            this.selectedPlayer = selectedPlayer;
+            match = GetComponent<Match>();
+
+            match.InitialPlayerSetEvent += OnInitialPlayerSet;
+            match.MatchStartEvent += OnMatchStart;
+            match.MatchEndEvent += OnMatchEnd;
+
+            match.Ball.DribblerSetEvent += OnDribblerSet;
 
             phasePlayers = new Dictionary<Phases, List<MatchPlayer>>
             {
-                [Phases.Teammates] = selectedPlayer.Team.GetPlayers(new MatchPlayer[] { selectedPlayer }),
-                [Phases.Dribbler ] = new List<MatchPlayer>() { selectedPlayer },
-                [Phases.Opponents] = selectedPlayer.Rival.Players
+                [Phases.Teammates] = null,
+                [Phases.Dribbler ] = null,
+                [Phases.Opponents] = null
             };
         }
 
-        public void Play(MatchPlayer selectedPlayer)
+        private void Play()
         {
             InitializePhasePlayers(selectedPlayer);
             StartCoroutine(Turn());
         }
 
-        public void Stop() => StopCoroutine(Turn());
+        private void Stop() => StopCoroutine(Turn());
+
+        private void InitializePhasePlayers(MatchPlayer selectedPlayer)
+        {
+            this.selectedPlayer = selectedPlayer;
+
+            phasePlayers[Phases.Teammates] = selectedPlayer.Team.GetPlayers(new MatchPlayer[] { selectedPlayer });
+            phasePlayers[Phases.Opponents] = selectedPlayer.Rival.Players;
+        }
 
         private IEnumerator Turn()
         {
@@ -62,7 +79,6 @@ namespace Fulbo.Match
             }
         }
 
-        private event Action<MatchPlayer> PlayerActionConfirmedEvent;
         private IEnumerator Phase(Phases phase, List<MatchPlayer> players)
         {
             // Wait for all players to select an action
@@ -93,6 +109,36 @@ namespace Fulbo.Match
         }
 
         #region Handlers
+        private void OnInitialPlayerSet(MatchPlayer initialPlayer) => selectedPlayer = initialPlayer;
+
+        private void OnMatchStart() => Play();
+
+        private void OnMatchEnd()
+        {
+            Stop();
+
+            match.InitialPlayerSetEvent -= OnInitialPlayerSet;
+            match.MatchStartEvent -= OnMatchStart;
+            match.MatchEndEvent -= OnMatchEnd;
+
+            match.Ball.DribblerSetEvent -= OnDribblerSet;
+        }
+
+        private void OnDribblerSet(MatchPlayer dribbler)
+        {
+            if (!dribbler) return;
+            if (dribbler.Side != Player.Side) return;
+
+            if (phasePlayers[Phases.Teammates] != null)
+            {
+                phasePlayers[Phases.Teammates].Remove(dribbler);
+                if (selectedPlayer) phasePlayers[Phases.Teammates].Add(selectedPlayer);
+            }
+
+            selectedPlayer = dribbler;
+            phasePlayers[Phases.Dribbler] = new List<MatchPlayer>() { selectedPlayer };
+        }
+
         private void OnPlayerActionConfirmed(MatchPlayer player)
         {
             player.Brain.ActionConfirmedEvent -= OnPlayerActionConfirmed;

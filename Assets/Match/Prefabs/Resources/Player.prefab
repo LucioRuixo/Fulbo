@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 6982397294324423861}
   - component: {fileID: 3386727600492909595}
+  - component: {fileID: 4991418438483136171}
+  - component: {fileID: 6931119000114636477}
   m_Layer: 0
   m_Name: Actions
   m_TagString: Untagged
@@ -44,6 +46,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 695c1465b79e96f43a9e10393f375047, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &4991418438483136171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1811563613836032193}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae2423e1d7d97b543b9f73ca834eeeb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &6931119000114636477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1811563613836032193}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 268862e3a6c432543a904ca4dcfd117f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5118335326476590248
 GameObject:
   m_ObjectHideFlags: 0
@@ -76,6 +102,7 @@ Transform:
   m_Children:
   - {fileID: 3887478888109128399}
   - {fileID: 6696959142742571969}
+  - {fileID: 2362217562682785355}
   - {fileID: 4612969307344780783}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -93,7 +120,39 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   brain: {fileID: 6739896742990596799}
   body: {fileID: 8976065941848376933}
+  ballReference: {fileID: 2362217562682785355}
   hud: {fileID: 7719331183772731064}
+--- !u!1 &5620619234862851158
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2362217562682785355}
+  m_Layer: 3
+  m_Name: BallReference
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2362217562682785355
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5620619234862851158}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.75}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4844093010373623399}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7145567179457178653
 GameObject:
   m_ObjectHideFlags: 0

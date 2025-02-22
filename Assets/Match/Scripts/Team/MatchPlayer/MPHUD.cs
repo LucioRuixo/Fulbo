@@ -28,7 +28,7 @@ namespace Fulbo.Match.UI
             player.SelectedEvent += OnSelected;
             player.UnselectedEvent += OnUnselected;
 
-            float arrowSize = player.Pitch.Length / player.Pitch.Squares.SquareCount.x;
+            float arrowSize = player.Pitch.Length / player.Pitch.Board.SquareCount.x;
             arrow.Initialize(arrowSize, ArrowHeight);
         }
 

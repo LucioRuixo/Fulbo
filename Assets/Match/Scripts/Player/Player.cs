@@ -17,9 +17,11 @@ namespace Fulbo.Match
 
         private Input input;
 
-        //private ISelectable selected;
+        private Ball Ball => match.Ball;
+
         public MatchPlayer SelectedPlayer { get; private set; }
 
+        public Sides Side => Sides.Home;
         public Vector3 Position => mainCamera.transform.position;
         public Camera View => mainCamera;
 
@@ -34,25 +36,16 @@ namespace Fulbo.Match
         private void Awake()
         {
             InitializeInput();
-
-            match.MatchStartEvent += OnMatchStart;
+            Ball.DribblerSetEvent += OnDribblerSet;
         }
-
-        //private void OnEnable() => input.SelectedEvent += OnSelected;
-
-        //private void OnDisable() => input.SelectedEvent -= OnSelected;
 
         private void OnDestroy()
         {
             input.SelectedEvent -= OnInputSelection;
-            match.MatchStartEvent -= OnMatchStart;
+            Ball.DribblerSetEvent -= OnDribblerSet;
         }
 
-        private void Update()
-        {
-            input.Update();
-            //if (input.State.selected != null) Debug.Log(input.State.selected);
-        }
+        private void Update() => input.Update();
 
         private void InitializeInput()
         {
@@ -68,14 +61,13 @@ namespace Fulbo.Match
             {
                 UnsubscribeFromPlayerEvents();
                 SelectedPlayer.OnUnselected();
+                SelectedPlayer.SetAIBrain();
             }
 
             SelectedPlayer = player;
             SelectedPlayer.OnSelected();
             SelectedPlayer.SetHumanBrain(this);
             SubscribeToPlayerEvents();
-
-            Debug.Log($"PLAYER SELECTED: {SelectedPlayer.ID}");
         }
 
         private void SubscribeToPlayerEvents()
@@ -93,12 +85,10 @@ namespace Fulbo.Match
         }
 
         #region Handlers
-        private void OnMatchStart() => SelectPlayer(match.Home.GetPlayers()[4]);
-
+        private void OnDribblerSet(MatchPlayer dribbler) => SelectPlayer(dribbler);
 
         private void OnPlayerChooseAction()
         {
-            uiManager.ActionMenu.SetConfirmButtonEnabled(false);
             uiManager.ActionMenu.Enable();
 
             uiManager.ActionMenu.ActionChosenEvent  += OnUIActionChosen;
@@ -109,18 +99,18 @@ namespace Fulbo.Match
         private void OnUIActionChosen(MPActions action)
         {
             ActionChosenEvent?.Invoke(action);
+            uiManager.ActionMenu.SetConfirmButtonEnabled(!SelectedPlayer.Brain.GetActionByType(action).RequiresFeed);
         }
 
-        private void OnUIActionCanceled(MPActions action)
-        {
-            ActionCanceledEvent?.Invoke(action);
-        }
+        private void OnUIActionCanceled(MPActions action) => ActionCanceledEvent?.Invoke(action);
 
         private void OnUIActionConfirmed(MPActions action)
         {
             uiManager.ActionMenu.ActionChosenEvent  -= OnUIActionChosen;
             uiManager.ActionMenu.ActionCanceledEvent  -= OnUIActionCanceled;
             uiManager.ActionMenu.ActionConfirmedEvent -= OnUIActionConfirmed;
+
+            uiManager.ActionMenu.Disable();
 
             ActionConfirmedEvent?.Invoke(action);
         }

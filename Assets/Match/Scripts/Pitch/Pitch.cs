@@ -24,10 +24,10 @@ namespace Fulbo.Match
 
         [SerializeField] private MeshRenderer pitchMesh;
 
-        [Header("Squares")]
+        [Header("Board")]
         [SerializeField] private Vector2Int squareCount;
         [SerializeField] private float squareSizeFactor;
-        [SerializeField] private Squares squareContainer;
+        [SerializeField] private Board board;
         [SerializeField] private GameObject squarePrefab;
 
         [Header("Lines")]
@@ -58,7 +58,7 @@ namespace Fulbo.Match
         public float Length => length;
         public float Width { get; private set; }
 
-        public Squares Squares => squareContainer;
+        public Board Board => board;
 
         public Goal LeftGoal => leftGoal;
         public Goal RightGoal => rightGoal;
@@ -84,7 +84,7 @@ namespace Fulbo.Match
 
         private void SpawnSquares()
         {
-            List<Transform> children = squareContainer.transform.Cast<Transform>().ToList();
+            List<Transform> children = board.transform.Cast<Transform>().ToList();
             foreach (Transform child in children)
             {
                 if (Application.isPlaying) Destroy(child.gameObject);
@@ -103,11 +103,11 @@ namespace Fulbo.Match
             {
                 for (int x = 0; x < squareCount.x; x++)
                 {
-                    Square square = Instantiate(squarePrefab, new Vector3(currentX, SquareY, currentZ), Quaternion.identity, squareContainer.transform).GetComponent<Square>();
+                    Square square = Instantiate(squarePrefab, new Vector3(currentX, SquareY, currentZ), Quaternion.identity, board.transform).GetComponent<Square>();
                     square.transform.localScale = Vector3.one * squareSize;
                     square.name = $"{x}, {y}";
 
-                    (squareArray[x, y] = square).Initialize(x, y, Squares);
+                    (squareArray[x, y] = square).Initialize(x, y, Board);
 
                     currentX += squareStep;
                 }
@@ -116,7 +116,7 @@ namespace Fulbo.Match
                 currentZ -= squareStep;
             }
 
-            squareContainer.Initialize(squareCount, squareArray, match);
+            board.Initialize(squareCount, squareArray, match);
         }
 
         private void SpawnLines()

@@ -49,6 +49,6 @@ namespace Fulbo.Match.UI
 
         public void OnConfirm() => ActionConfirmedEvent?.Invoke(selectedAction);
 
-        public void SetConfirmButtonEnabled(bool enabled) => confirmButton.enabled = enabled;
+        public void SetConfirmButtonEnabled(bool enabled) => confirmButton.interactable = enabled;
     }
 }

@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace Fulbo.Match
 {
-    public class Squares : MonoBehaviour
+    public class Board : MonoBehaviour
     {
-        private Square[,] squares;
+        private Square[,] squares2D;
 
         private Match match;
 
@@ -15,6 +15,8 @@ namespace Fulbo.Match
 
         public float SquareSize { get; private set; }
         public Vector2Int SquareCount { get; private set; }
+
+        public List<Square> Squares { get; private set; }
 
         public event Action<Square, MatchPlayer> PlayerMovedToSquareEvent;
 
@@ -31,26 +33,50 @@ namespace Fulbo.Match
             match.TurnManager.PhaseEndedEvent -= OnPhaseEnded;
         }
 
-        public void Initialize(Vector2Int squareCount, Square[,] squares, Match match)
+        public void Initialize(Vector2Int squareCount, Square[,] squares2D, Match match)
         {
-            this.squares = squares;
+            this.squares2D = squares2D;
             this.match = match;
 
             SquareSize = match.Pitch.Length / squareCount.x;
             SquareCount = squareCount;
 
-            for (int y = 0; y < squareCount.y; y++)
+            Squares = new List<Square>();
+            Action<Square> initializeSquares = square =>
             {
-                for (int x = 0; x < squareCount.x; x++)
-                {
-                    Get(x, y).PlayerAddedEvent += OnPlayerAddedToSquare;
-                }
-            }
+                Squares.Add(square);
+                square.PlayerAddedEvent += OnPlayerAddedToSquare;
+            };
+            ForEachSquare(initializeSquares);
+            //for (int y = 0; y < squareCount.y; y++)
+            //{
+            //    for (int x = 0; x < squareCount.x; x++)
+            //    {
+            //        Get(x, y).PlayerAddedEvent += OnPlayerAddedToSquare;
+            //    }
+            //}
 
             moveQueue = new Queue<KeyValuePair<Vector2Int, PlayerID>>();
 
             match.TurnManager.PhaseEndedEvent += OnPhaseEnded;
         }
+
+        private int ClampX(int x) => Mathf.Clamp(x, 0, SquareCount.x - 1);
+
+        private int ClampY(int y) => Mathf.Clamp(y, 0, SquareCount.y - 1);
+
+        private void ForEachSquare(Action<Square> action)
+        {
+            for (int y = 0; y < SquareCount.y; y++)
+            {
+                for (int x = 0; x < SquareCount.x; x++)
+                {
+                    action(Get(x, y));
+                }
+            }
+        }
+
+        private void DisableHighlights() => ForEachSquare(square => { if (square.Highlighted) square.SetHighlight(false); });
 
         private void ExecuteQueuedMoves()
         {
@@ -77,7 +103,8 @@ namespace Fulbo.Match
             moveQueue = new Queue<KeyValuePair<Vector2Int, PlayerID>>(moveQueue.Where(move => !(move.Key == remove.Key && move.Value == remove.Value)));
         }
 
-        public Square Get(int x, int y) => x < 0 || x >= SquareCount.x || y < 0 || y >= SquareCount.y ? null : squares[x, y];
+        #region Queries
+        public Square Get(int x, int y) => x < 0 || x >= SquareCount.x || y < 0 || y >= SquareCount.y ? null : squares2D[x, y];
 
         public Square Get(Vector2Int id) => Get(id.x, id.y);
 
@@ -100,12 +127,43 @@ namespace Fulbo.Match
 
         public bool IsMoveQueued(Vector2Int squareID, PlayerID playerID) => moveQueue.Any(move => move.Key == squareID && move.Value.Side == playerID.Side);
 
+        public Square[] GetAdjacentSquares(Square reference, int distance = 1)
+        {
+            if (distance < 1) return null;
+
+            int startX = ClampX(reference.X - distance);
+            int endX = ClampX(reference.X + distance);
+            int startY = ClampY(reference.Y - distance);
+            int endY = ClampY(reference.Y + distance);
+
+            Square[] adjacentSquares = new Square[(endX - startX + 1) * (endY - startY + 1) - 1];
+
+            int currenIndex = 0;
+            for (int y = startY; y <= endY; y++)
+            {
+                for (int x = startX; x <= endX; x++)
+                {
+                    Square square = squares2D[x, y];
+
+                    if (square == reference) continue;
+
+                    adjacentSquares[currenIndex] = square;
+                    currenIndex++;
+                }
+            }
+
+            return adjacentSquares;
+        }
+        #endregion
+
         #region Handlers
         private void OnPlayerAddedToSquare(Square square, MatchPlayer player) => PlayerMovedToSquareEvent?.Invoke(square, player);
 
-        private void OnPhaseEnded(TurnManager.Phases phase) => ExecuteQueuedMoves();
-
-        //private void OnTurnEnded(int turn) => ExecuteQueuedMoves();
+        private void OnPhaseEnded(TurnManager.Phases phase)
+        {
+            DisableHighlights();
+            ExecuteQueuedMoves();
+        }
         #endregion
     }
 }

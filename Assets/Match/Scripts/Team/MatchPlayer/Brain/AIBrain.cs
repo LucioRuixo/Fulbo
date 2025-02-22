@@ -18,12 +18,14 @@ namespace Fulbo.Match
         };
         // --------------------
 
-        public AIBrain(Transform actions, MatchPlayer player, Squares squares, MPHUD hud) : base(actions, player, squares, hud) { }
+        protected override bool ShowCompleteUI => false;
+
+        public AIBrain(Transform actions, MatchPlayer player, Board board, MPHUD hud) : base(actions, player, board, hud) { }
 
         protected override void ProcessChooseAction()
         {
-            TrySelectRandomAdjacentSquare();
             OnActionChosen(GetAction<MPA_Move>());
+            TrySelectRandomAdjacentSquare();
             OnActionConfirmed();
         }
 
@@ -53,9 +55,9 @@ namespace Fulbo.Match
                 {
                     triedIndex = player.CurrentSquare.X + move.Value;
                     Vector2Int triedID = new Vector2Int(triedIndex, currentSquare.Y);
-                    if (squares.ExistsX(triedIndex) && squares.IsEmpty(triedID, player.Side) && !squares.IsMoveQueued(triedID, player.ID))
+                    if (board.ExistsX(triedIndex) && board.IsEmpty(triedID, player.Side) && !board.IsMoveQueued(triedID, player.ID))
                     {
-                        targetSquare = squares.Get(triedID);
+                        targetSquare = board.Get(triedID);
                         break;
                     }
                 }
@@ -63,9 +65,9 @@ namespace Fulbo.Match
                 {
                     triedIndex = player.CurrentSquare.Y + move.Value;
                     Vector2Int triedID = new Vector2Int(currentSquare.X, triedIndex);
-                    if (squares.ExistsY(triedIndex) && squares.IsEmpty(triedID, player.Side) && !squares.IsMoveQueued(triedID, player.ID))
+                    if (board.ExistsY(triedIndex) && board.IsEmpty(triedID, player.Side) && !board.IsMoveQueued(triedID, player.ID))
                     {
-                        targetSquare = squares.Get(triedID);
+                        targetSquare = board.Get(triedID);
                         break;
                     }
                 }

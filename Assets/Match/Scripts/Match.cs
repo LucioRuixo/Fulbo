@@ -12,13 +12,19 @@ namespace Fulbo.Match
 
         [SerializeField] private Team home;
         [SerializeField] private Team away;
+        [SerializeField] private Ball ball;
 
+        public Player Player => player;
         public TurnManager TurnManager { get; private set; }
+
         public Pitch Pitch => pitch;
         public Team Home => home;
         public Team Away => away;
+        public Ball Ball => ball;
 
+        public event Action<MatchPlayer> InitialPlayerSetEvent;
         public event Action MatchStartEvent;
+        public event Action MatchEndEvent;
 
         private void Awake()
         {
@@ -26,14 +32,16 @@ namespace Fulbo.Match
 
             pitch.Initialize(this);
             InitializeTeams();
+            ball.Initialize(this);
         }
 
         private void Start()
         {
+            InitialPlayerSetEvent?.Invoke(Home.GetPlayers()[4]);
             MatchStartEvent?.Invoke();
-
-            TurnManager.Play(player.SelectedPlayer);
         }
+
+        private void OnDestroy() => MatchEndEvent?.Invoke();
 
         private void InitializeTeams()
         {
@@ -43,6 +51,7 @@ namespace Fulbo.Match
             away.Initialize(Sides.Away, this, playerPrefab);
         }
 
+        #region Queries
         public Halves GetDefendedHalfBySide(Sides side) => side == Sides.Home ? Halves.Left : Halves.Right;
         public Halves GetAttackedHalfBySide(Sides side) => side == Sides.Home ? Halves.Right : Halves.Left;
 
@@ -51,5 +60,6 @@ namespace Fulbo.Match
 
         public Team GetTeam(Sides side) => side == Sides.None ? null : side == Sides.Home ? Home : Away;
         public Team GetRival(Sides side) => side == Sides.None ? null : side == Sides.Home ? Away : Home;
+        #endregion
     }
 }

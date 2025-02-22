@@ -37,10 +37,13 @@ namespace Fulbo.Match
     {
         #region Constants
         public const string PrefabResourcesPath = "Player";
+
+        public const int MovementDistance = 1;
         #endregion
 
         [SerializeField] private BrainMB brain;
         [SerializeField] private MPBody body;
+        [SerializeField] private Transform ballReference;
         [SerializeField] private MPHUD hud;
 
         private Match match;
@@ -48,6 +51,7 @@ namespace Fulbo.Match
         public Brain Brain { get; private set; }
 
         public Vector3 Position { get => transform.position; set => transform.position = value; }
+        public Vector3 BallReference => ballReference.position;
 
         public Team Team { get; private set; }
         public Sides Side => Team.Side;
@@ -105,7 +109,7 @@ namespace Fulbo.Match
         public event Action UnselectedEvent;
         public event Action ChooseActionEvent;
 
-        private void OnDestroy() => Pitch.Squares.PlayerMovedToSquareEvent -= OnPlayerMovedToSquare;
+        private void OnDestroy() => Pitch.Board.PlayerMovedToSquareEvent -= OnPlayerMovedToSquare;
 
         public void Initialize(int index, Team team, Match match)
         {
@@ -118,8 +122,8 @@ namespace Fulbo.Match
             this.match = match;
 
             // Squares
-            StartSquare = CurrentSquare = Pitch.Squares.Get((Side == Sides.Home ? startPositions_Home : startPositions_Away)[Index]);
-            Pitch.Squares.PlayerMovedToSquareEvent += OnPlayerMovedToSquare;
+            StartSquare = CurrentSquare = Pitch.Board.Get((Side == Sides.Home ? startPositions_Home : startPositions_Away)[Index]);
+            Pitch.Board.PlayerMovedToSquareEvent += OnPlayerMovedToSquare;
 
             // Body
             body.Initialize(this);
@@ -136,7 +140,7 @@ namespace Fulbo.Match
         }
 
         #region Brain
-        private void InitializeBrain() => brain.Initialize(this, match.Pitch.Squares, hud);
+        private void InitializeBrain() => brain.Initialize(this, match.Pitch.Board, hud);
 
         private void UseBrain(Brain brain)
         {

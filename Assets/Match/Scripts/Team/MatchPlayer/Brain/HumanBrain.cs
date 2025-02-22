@@ -6,9 +6,11 @@ namespace Fulbo.Match
 
     public class HumanBrain : Brain
     {
+        protected override bool ShowCompleteUI => true;
+
         private Player Human => player.Human;
 
-        public HumanBrain(Transform actions, MatchPlayer player, Squares squares, MPHUD hud) : base(actions, player, squares, hud) { }
+        public HumanBrain(Transform actions, MatchPlayer player, Board board, MPHUD hud) : base(actions, player, board, hud) { }
 
         protected override void ProcessChooseAction()
         {
@@ -21,8 +23,6 @@ namespace Fulbo.Match
         private void OnActionChosen(MPActions action)
         {
             OnActionChosen(GetActionByType(action));
-            chosenAction.OnChosen();
-
             Human.ScreenSelectionEvent += OnScreenSelection;
         }
 
@@ -34,7 +34,12 @@ namespace Fulbo.Match
 
         private void OnActionConfirmed(MPActions action)
         {
+            Human.ActionChosenEvent -= OnActionChosen;
+            Human.ActionCanceledEvent -= OnActionCanceled;
+            Human.ActionConfirmedEvent -= OnActionConfirmed;
+
             Human.ScreenSelectionEvent -= OnScreenSelection;
+
             OnActionConfirmed();
         }
 
