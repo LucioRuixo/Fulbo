@@ -36,7 +36,7 @@ namespace Fulbo.Match
         private event Action<MatchPlayer> PlayerActionConfirmedEvent;
 
         public event Action<MatchPlayer> PassEvent;
-        public event Action ShotEvent;
+        public event Action<MatchPlayer> ShotEvent;
         public event Action<Phases> PhaseEndedEvent;
         public event Action<int> TurnEndedEvent;
 
@@ -45,10 +45,10 @@ namespace Fulbo.Match
             match = GetComponent<Match>();
 
             match.InitialPlayerSetEvent += OnInitialPlayerSet;
+            match.PlayStartEvent += OnPlayStart;
+            match.PlayEndEvent += OnPlayEnd;
             match.MatchStartEvent += OnMatchStart;
             match.MatchEndEvent += OnMatchEnd;
-
-            match.Ball.DribblerSetEvent += OnDribblerSet;
 
             phasePlayers = new Dictionary<Phases, List<MatchPlayer>>
             {
@@ -58,13 +58,22 @@ namespace Fulbo.Match
             };
         }
 
+        private void OnDestroy()
+        {
+            match.InitialPlayerSetEvent -= OnInitialPlayerSet;
+            match.PlayStartEvent -= OnPlayStart;
+            match.PlayEndEvent -= OnPlayEnd;
+            match.MatchStartEvent -= OnMatchStart;
+            match.MatchEndEvent -= OnMatchEnd;
+        }
+
         private void Play()
         {
             InitializePhasePlayers(selectedPlayer);
             StartCoroutine(Turn());
         }
 
-        private void Stop() => StopCoroutine(Turn());
+        private void Stop() => StopAllCoroutines();
 
         private void InitializePhasePlayers(MatchPlayer selectedPlayer)
         {
@@ -88,6 +97,8 @@ namespace Fulbo.Match
 
         private IEnumerator Phase(Phases phase, List<MatchPlayer> players)
         {
+            yield return new WaitForSeconds(WaitInterval);
+
             // Wait for all players to select an action
             Dictionary<PlayerID, bool> results = new Dictionary<PlayerID, bool>();
             PlayerActionConfirmedEvent += (player) => { if (results.ContainsKey(player.ID)) results[player.ID] = true; };
@@ -114,25 +125,18 @@ namespace Fulbo.Match
 
             Debug.Log(phase);
             PhaseEndedEvent?.Invoke(phase);
-
-            yield return new WaitForSeconds(WaitInterval);
         }
 
         #region Handlers
         private void OnInitialPlayerSet(MatchPlayer initialPlayer) => selectedPlayer = initialPlayer;
 
-        private void OnMatchStart() => Play();
+        private void OnPlayStart() => Play();
 
-        private void OnMatchEnd()
-        {
-            Stop();
+        private void OnPlayEnd() => Stop();
 
-            match.InitialPlayerSetEvent -= OnInitialPlayerSet;
-            match.MatchStartEvent -= OnMatchStart;
-            match.MatchEndEvent -= OnMatchEnd;
+        private void OnMatchStart() => match.Ball.DribblerSetEvent += OnDribblerSet;
 
-            match.Ball.DribblerSetEvent -= OnDribblerSet;
-        }
+        private void OnMatchEnd() => match.Ball.DribblerSetEvent -= OnDribblerSet;
 
         private void OnDribblerSet(MatchPlayer dribbler)
         {
@@ -160,7 +164,7 @@ namespace Fulbo.Match
 
         private void OnPass(MatchPlayer receiver) => PassEvent?.Invoke(receiver);
 
-        private void OnShot() => ShotEvent?.Invoke();
+        private void OnShot(MatchPlayer kicker) => ShotEvent?.Invoke(kicker);
 
         private void OnPlayerActionConfirmed(MatchPlayer player)
         {

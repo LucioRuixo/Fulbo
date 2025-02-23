@@ -49,10 +49,17 @@ namespace Fulbo.Match
             {
                 MatchPlayer player = Instantiate(playerPrefab, transform).GetComponent<MatchPlayer>();
                 player.Initialize(i, this, match);
-                player.transform.position = player.StartSquare.Position;
-                player.transform.rotation = Quaternion.LookRotation(player.AttackDirection, Vector3.up);
                 player.name = $"{Side} | {i}";
                 Players.Add(player);
+            }
+        }
+
+        public void ResetPlayers()
+        {
+            foreach (MatchPlayer player in Players)
+            {
+                player.transform.rotation = Quaternion.LookRotation(player.AttackDirection, Vector3.up);
+                player.StartSquare.AddPlayer(player);
             }
         }
 

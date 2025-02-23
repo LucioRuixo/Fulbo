@@ -62,7 +62,7 @@ namespace Fulbo.Match
             SetDribbler(receiver);
         }
 
-        private void OnShot()
+        private void OnShot(MatchPlayer kicker)
         {
             if (!Dribbler) return;
 
