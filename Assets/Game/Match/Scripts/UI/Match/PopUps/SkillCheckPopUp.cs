@@ -23,7 +23,7 @@ namespace Fulbo.Match.UI
             required.text = skillCheckResult.Required.ToString();
             difficulty.text = skillCheckResult.Difficulty.ToString();
 
-            Canvas.ForceUpdateCanvases();
+            OnContentUpdated();
         }
     }
 }

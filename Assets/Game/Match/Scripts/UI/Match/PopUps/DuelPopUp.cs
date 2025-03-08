@@ -25,7 +25,7 @@ namespace Fulbo.Match.UI
             contenderRollsContainer.GetChild(0).GetComponent<TMP_Text>().text = RollString(duelResult.ContenderAttribute, duelResult.ContenderModifier, duelResult.ContenderRoll);
             contenderTotal.text = NumberToString(duelResult.ContenderTotal);
 
-            Canvas.ForceUpdateCanvases();
+            OnContentUpdated();
         }
     }
 }

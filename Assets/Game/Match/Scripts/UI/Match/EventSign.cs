@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Fulbo.Match.UI
 {
@@ -18,8 +19,12 @@ namespace Fulbo.Match.UI
         [SerializeField] private RectTransform container;
         [SerializeField] private TMP_Text eventText;
 
+        private LayoutGroup[] layoutGroups;
+
         private void Awake()
         {
+            layoutGroups = GetComponentsInChildren<LayoutGroup>(true);
+
             match.ShotMissedEvent += OnShotMissed;
             match.ShotSavedEvent += OnShotSaved;
             match.GoalEvent += OnShotGoal;
@@ -41,7 +46,8 @@ namespace Fulbo.Match.UI
         {
             eventText.text = text;
             container.gameObject.SetActive(true);
-            Canvas.ForceUpdateCanvases();
+
+            UIUtils.ForceRebuildChildrenLayoutsImmediate(layoutGroups);
         }
 
         private void Hide()
