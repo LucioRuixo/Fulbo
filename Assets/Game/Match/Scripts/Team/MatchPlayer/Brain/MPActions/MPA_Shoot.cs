@@ -2,6 +2,7 @@ using System;
 
 namespace Fulbo.Match
 {
+    using Settings;
     using UI;
 
     public class MPA_Shoot : MPAction
@@ -22,7 +23,7 @@ namespace Fulbo.Match
             hud.Arrow.Show();
             hud.Arrow.Point(player.Position, player.AttackedGoal.BottomCenter);
 
-            shotAttempt = new ShotAttempt(player, SkillCheck.Difficulties.Medium);
+            shotAttempt = new ShotAttempt(player, MatchSettings.GetShotDifficulty(player));
             SkillCheckResult shotAttempResult = new SkillCheckResult();
             shotAttempResult.Initialize(shotAttempt.Data);
             shotAttemptPopUp = shotAttempt.PopUp;
