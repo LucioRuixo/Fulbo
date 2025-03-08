@@ -66,11 +66,16 @@ namespace Fulbo.Match
 
         public List<MatchPlayer> GetPlayers(MatchPlayer[] exclude = null) => Players.Where(player => exclude == null || !exclude.Contains(player)).ToList();
 
+        // Debug
+        // --------------------
+        public static string GetAbbreviation(Sides side) => side == Sides.None ? null : side.ToString().Abbreviate();
+
         public static Material GetMaterial(Sides side)
         {
             if (side == Sides.Home) return homeMaterial ??= Resources.Load<Material>("Home");
             else if (side == Sides.Away) return awayMaterial ??= Resources.Load<Material>("Away");
             else return null;
         }
+        // --------------------
     }
 }

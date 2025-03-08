@@ -12,6 +12,14 @@ namespace Fulbo.Match.UI
 
         [SerializeField] private TMP_Text homeScore;
         [SerializeField] private TMP_Text awayScore;
+
+        [Space]
+
+        [SerializeField] private TMP_Text homeName;
+        [SerializeField] private TMP_Text awayName;
+
+        [Space]
+
         [SerializeField] private Image homeColor;
         [SerializeField] private Image awayColor;
 
@@ -21,6 +29,9 @@ namespace Fulbo.Match.UI
         {
             homeScore.text = 0.ToString();
             awayScore.text = 0.ToString();
+
+            homeName.text = Team.GetAbbreviation(Sides.Home);
+            awayName.text = Team.GetAbbreviation(Sides.Away);
 
             homeColor.color = Team.GetMaterial(Sides.Home).color;
             awayColor.color = Team.GetMaterial(Sides.Away).color;
