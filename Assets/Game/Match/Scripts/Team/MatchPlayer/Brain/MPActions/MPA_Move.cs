@@ -31,9 +31,7 @@ namespace Fulbo.Match
 
         public override void OnChosen(bool completeUI)
         {
-            validSquares = 
-                board.GetAdjacentSquares(player.CurrentSquare, MatchPlayer.MovementDistance).
-                Where(square => square != player.CurrentSquare && board.IsEmpty(square.ID, player.Side)).ToArray();
+            validSquares = player.GetValidMovementSquares();
 
             if (completeUI) foreach (Square square in validSquares) square.SetHighlight(true);
         }

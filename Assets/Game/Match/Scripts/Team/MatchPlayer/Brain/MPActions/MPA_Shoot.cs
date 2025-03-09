@@ -24,14 +24,10 @@ namespace Fulbo.Match
             hud.Arrow.Point(player.Position, player.AttackedGoal.BottomCenter);
 
             shotAttempt = new ShotAttempt(player, MatchSettings.GetShotDifficulty(player));
-            SkillCheckResult shotAttempResult = new SkillCheckResult();
-            shotAttempResult.Initialize(shotAttempt.Data);
             shotAttemptPopUp = shotAttempt.PopUp;
 
             MatchPlayer gk = player.Rival.GK;
             shot = new Shot(player, gk);
-            DuelResult shotResult = new DuelResult();
-            shotResult.Initialize(shot.Data);
             shotPopUp = shot.PopUp;
         }
 
@@ -61,7 +57,5 @@ namespace Fulbo.Match
             shotAttempt = null;
             shotAttemptPopUp = null;
         }
-
-        public void OnShotAttempt(MatchPlayer kicker, RollResult result) { }
     }
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Fulbo.Match
 {
@@ -26,21 +25,28 @@ namespace Fulbo.Match
 
         private void OnSelectReceiver()
         {
-            if (completeUI) foreach (Square square in teamSquares) square.SetHighlight(true);
+            if (completeUI)
+            {
+                if (receptionSquares != null) foreach (Square square in receptionSquares) square.SetHighlight(false);
+                foreach (Square square in teamSquares) square.SetHighlight(true);
+            }
         }
 
         private void SetReceiver(MatchPlayer receiver)
         {
             this.receiver = receiver;
-            receptionSquare = receiver.CurrentSquare;
 
-            receptionSquares.Add(receiver.CurrentSquare);
-            validSquares = receptionSquares;
+            receptionSquare = receiver.CurrentSquare;
+            UpdateSquares(receptionSquare);
 
             hud.Arrow.Show();
             hud.Arrow.Point(player.Position, targetSquare.Position);
 
-            if (completeUI) foreach (Square square in teamSquares) square.SetHighlight(false);
+            if (completeUI)
+            {
+                foreach (Square square in teamSquares) square.SetHighlight(false);
+                foreach (Square square in receptionSquares) square.SetHighlight(true);
+            }
         }
 
         private void ClearReceiver()
@@ -59,6 +65,7 @@ namespace Fulbo.Match
         private void SetReceptionSquare(Square receptionSquare)
         {
             this.receptionSquare = receptionSquare;
+            UpdateSquares(receptionSquare);
 
             receiver.HUD.Arrow.Show();
             receiver.HUD.Arrow.Point(receiver.Position, receptionSquare.Position);
@@ -66,8 +73,20 @@ namespace Fulbo.Match
 
         private void ClearReceptionSquare()
         {
-            receptionSquare = null;
+            receptionSquare = receiver.CurrentSquare;
+            UpdateSquares(receptionSquare);
+
+            if (completeUI) foreach (Square square in receptionSquares) square.SetHighlight(true);
+
             receiver.HUD.Arrow.Hide();
+        }
+
+        private void UpdateSquares(Square receptionSquare)
+        {
+            if (!receiver) return;
+
+            validSquares = receiver.GetValidReceptionSquares().ToList();
+            receptionSquares = validSquares.Except(new Square[] { receptionSquare }).ToList();
         }
 
         public override bool Feed(ISelectable selection)
@@ -93,7 +112,6 @@ namespace Fulbo.Match
             this.completeUI = completeUI;
 
             validSquares = teamSquares = board.Squares.Where(square => square != player.CurrentSquare && !board.IsEmpty(square.ID, player.Side)).ToList();
-            receptionSquares = board.Squares.Except(teamSquares).ToList();
 
             OnSelectReceiver();
         }

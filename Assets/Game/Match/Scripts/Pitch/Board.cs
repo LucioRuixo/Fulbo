@@ -127,7 +127,7 @@ namespace Fulbo.Match
 
         public bool IsMoveQueued(Vector2Int squareID, PlayerID playerID) => moveQueue.Any(move => move.Key == squareID && move.Value.Side == playerID.Side);
 
-        public Square[] GetAdjacentSquares(Square reference, int distance = 1)
+        public Square[] GetAdjacentSquares(Square reference, int distance = 1, bool includeReferenceSquare = false)
         {
             if (distance < 1) return null;
 
@@ -136,16 +136,17 @@ namespace Fulbo.Match
             int startY = ClampY(reference.Y - distance);
             int endY = ClampY(reference.Y + distance);
 
-            Square[] adjacentSquares = new Square[(endX - startX + 1) * (endY - startY + 1) - 1];
+            Square[] adjacentSquares = new Square[(endX - startX + 1) * (endY - startY + 1) - (includeReferenceSquare ? 0 : 1)];
 
             int currenIndex = 0;
+
             for (int y = startY; y <= endY; y++)
             {
                 for (int x = startX; x <= endX; x++)
                 {
                     Square square = squares2D[x, y];
 
-                    if (square == reference) continue;
+                    if (square == reference && !includeReferenceSquare) continue;
 
                     adjacentSquares[currenIndex] = square;
                     currenIndex++;

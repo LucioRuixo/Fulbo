@@ -128,7 +128,6 @@ namespace Fulbo.Match
             processActionOnPhaseEnd?.Invoke();
             processActionOnPhaseEnd = null;
 
-            Debug.Log(phase);
             PhaseEndedEvent?.Invoke(phase);
 
             yield return new WaitForSeconds(WaitInterval);

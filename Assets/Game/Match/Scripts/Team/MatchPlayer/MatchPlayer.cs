@@ -1,9 +1,11 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace Fulbo.Match
 {
     using Attributes;
+    using System.Collections.Generic;
     using UI;
 
     #region Constants
@@ -79,6 +81,7 @@ namespace Fulbo.Match
 
         public Vector3 BallReference => ballReference.position;
         public Pitch Pitch => match.Pitch;
+        public Board Board => match.Pitch.Board;
 
         public MPHUD HUD => hud;
 
@@ -122,7 +125,7 @@ namespace Fulbo.Match
         public event Action UnselectedEvent;
         public event Action ChooseActionEvent;
 
-        private void OnDestroy() => Pitch.Board.PlayerMovedToSquareEvent -= OnPlayerMovedToSquare;
+        private void OnDestroy() => Board.PlayerMovedToSquareEvent -= OnPlayerMovedToSquare;
 
         public void Initialize(int index, Team team, Match match)
         {
@@ -141,8 +144,8 @@ namespace Fulbo.Match
                 new PlayerAttributes(new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 });
 
             // Squares
-            StartSquare = CurrentSquare = Pitch.Board.Get((Side == Sides.Home ? startPositions_Home : startPositions_Away)[Index]);
-            Pitch.Board.PlayerMovedToSquareEvent += OnPlayerMovedToSquare;
+            StartSquare = CurrentSquare = Board.Get((Side == Sides.Home ? startPositions_Home : startPositions_Away)[Index]);
+            Board.PlayerMovedToSquareEvent += OnPlayerMovedToSquare;
 
             // Body
             body.Initialize(this);
@@ -158,8 +161,14 @@ namespace Fulbo.Match
             hud.Initialize(this);
         }
 
+        public Square[] GetAdjacentSquares(bool includeCurrent = false, int distance = 1) => Board.GetAdjacentSquares(CurrentSquare, distance, includeCurrent);
+
+        public Square[] GetValidMovementSquares() => GetAdjacentSquares(false, MovementDistance).Where(square => Board.IsEmpty(square.ID, Side)).ToArray();
+
+        public Square[] GetValidReceptionSquares() => GetAdjacentSquares(true, MovementDistance).Where(square => square == CurrentSquare || Board.IsEmpty(square.ID, Side)).ToArray();
+
         #region Brain
-        private void InitializeBrain() => brain.Initialize(this, match.Pitch.Board, hud);
+        private void InitializeBrain() => brain.Initialize(this, Board, hud);
 
         private void UseBrain(Brain brain)
         {
