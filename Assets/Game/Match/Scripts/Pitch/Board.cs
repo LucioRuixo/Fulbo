@@ -33,12 +33,12 @@ namespace Fulbo.Match
             match.TurnManager.PhaseEndedEvent -= OnPhaseEnded;
         }
 
-        public void Initialize(Vector2Int squareCount, Square[,] squares2D, Match match)
+        public void Initialize(Vector2Int squareCount, Square[,] squares2D, Match match, Pitch pitch)
         {
             this.squares2D = squares2D;
             this.match = match;
 
-            SquareSize = match.Pitch.Length / squareCount.x;
+            SquareSize = pitch.Length / squareCount.x;
             SquareCount = squareCount;
 
             Squares = new List<Square>();

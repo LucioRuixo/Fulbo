@@ -7,6 +7,7 @@ namespace Fulbo.Match
     public class Pitch : MonoBehaviour
     {
         #region Constants
+        private const float PitchMeshScaleMultiplier = 1f;
         private const float PlaneMeshScaleMultiplier = 0.1f;
 
         private const float PitchY = 0f;
@@ -76,7 +77,7 @@ namespace Fulbo.Match
         private void ScalePitch()
         {
             Width = (length / squareCount.x) * squareCount.y;
-            pitchMesh.transform.localScale = new Vector3(length * PlaneMeshScaleMultiplier, 0f, Width * PlaneMeshScaleMultiplier);
+            pitchMesh.transform.localScale = new Vector3(length * PitchMeshScaleMultiplier, 1f, Width * PitchMeshScaleMultiplier);
 
             topLeft = new Vector3(-length.Half(), PitchY, Width.Half());
             bottomRight = new Vector3(length.Half(), PitchY, -Width.Half());
@@ -116,7 +117,7 @@ namespace Fulbo.Match
                 currentZ -= squareStep;
             }
 
-            board.Initialize(squareCount, squareArray, match);
+            board.Initialize(squareCount, squareArray, match, this);
         }
 
         private void SpawnLines()
