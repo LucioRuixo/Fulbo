@@ -86,6 +86,8 @@ namespace Fulbo.Match
         #region Handlers
         private void OnDribblerSet(MatchPlayer dribbler) => SelectPlayer(dribbler);
 
+        private void OnDribblerCleared(MatchPlayer previousDribbler) => UnselectPlayer();
+
         private void OnPlayerChooseAction()
         {
             uiManager.ActionMenu.Enable();

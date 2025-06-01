@@ -125,7 +125,12 @@ namespace Fulbo.Match
         public event Action UnselectedEvent;
         public event Action ChooseActionEvent;
 
-        private void OnDestroy() => Board.PlayerMovedToSquareEvent -= OnPlayerMovedToSquare;
+        private void OnDestroy()
+        {
+            Board.PlayerMovedToSquareEvent -= OnPlayerMovedToSquare;
+            match.Ball.DribblerSetEvent -= OnDribblerSet;
+            match.Ball.DribblerClearedEvent -= OnDribblerCleared;
+        }
 
         public void Initialize(int index, Team team, Match match)
         {
@@ -136,7 +141,10 @@ namespace Fulbo.Match
 
             ID = new PlayerID(Side, Index);
 
+            // Match
             this.match = match;
+            match.Ball.DribblerSetEvent += OnDribblerSet;
+            match.Ball.DribblerClearedEvent += OnDribblerCleared;
 
             // Attributes
             Attributes = IsGK ?
@@ -206,6 +214,20 @@ namespace Fulbo.Match
         #endregion
 
         #region Handlers
+        private void OnDribblerSet(MatchPlayer dribbler)
+        {
+            if (dribbler != this) return;
+
+            body.Animator.PlayPose(MPAnimator.Poses.Run);
+        }
+
+        private void OnDribblerCleared(MatchPlayer previousDribbler)
+        {
+            if (previousDribbler != this) return;
+
+            body.Animator.PlayPose(MPAnimator.Poses.Idle);
+        }
+
         private void OnPlayerMovedToSquare(Square square, MatchPlayer player)
         {
             if (player != this) return;
