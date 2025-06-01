@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Fulbo.Match
@@ -10,10 +11,16 @@ namespace Fulbo.Match
         private Transform actions;
 
         protected MatchPlayer player;
-        protected Board board;
+        protected Match match;
         protected MPHUD hud;
 
-        protected MPAction chosenAction;
+        protected MPAction targetAction;
+
+        protected Ball Ball => match.Ball;
+        protected Board Board => match.Pitch.Board;
+
+        protected Queue<MPActions> actionQueue = new Queue<MPActions>();
+        public bool HasActionsInQueue => actionQueue.Count > 0;
 
         protected abstract bool ShowCompleteUI { get; }
 
@@ -22,11 +29,11 @@ namespace Fulbo.Match
         public event Action<MatchPlayer> ActionChosenEvent;
         public event Action<MatchPlayer> ActionConfirmedEvent;
 
-        public Brain(Transform actions, MatchPlayer player, Board board, MPHUD hud)
+        public Brain(Transform actions, MatchPlayer player, Match match, MPHUD hud)
         {
             this.actions = actions;
             this.player = player;
-            this.board = board;
+            this.match = match;
             this.hud = hud;
         }
 
@@ -42,20 +49,23 @@ namespace Fulbo.Match
         {
             if (!action) return;
 
-            (chosenAction = action).OnChosen(ShowCompleteUI);
+            (targetAction = action).OnChosen(ShowCompleteUI);
             ActionChosenEvent?.Invoke(player);
         }
 
         protected void OnActionCanceled()
         {
-            chosenAction.OnUnchosen();
-            chosenAction.OnExit();
-            chosenAction = null;
+            targetAction.OnUnchosen();
+            targetAction.OnExit();
+            targetAction = null;
         }
 
         protected void OnActionConfirmed()
         {
-            chosenAction.OnConfirmed();
+            actionQueue.Enqueue(targetAction.Type);
+            targetAction.OnConfirmed();
+            targetAction = null;
+
             ActionConfirmedEvent?.Invoke(player);
         }
 
@@ -67,11 +77,20 @@ namespace Fulbo.Match
 
         public void ExecuteAction()
         {
-            chosenAction.Execute();
-            chosenAction.OnExit();
+            if (actionQueue.Count == 0) return;
+
+            MPAction action = GetActionByType(actionQueue.Dequeue());
+            action.Execute();
+            action.OnExit();
         }
 
-        public Action GetAction<Action>() where Action : MPAction => actions.GetComponent<Action>();
+        public bool TryGetAction<Action>(out Action action) where Action : MPAction => actions.TryGetComponent(out action);
+
+        public Action GetAction<Action>() where Action : MPAction
+        {
+            TryGetAction(out Action action);
+            return action;
+        }
 
         public MPAction GetActionByType(MPActions type) => type switch
         {
@@ -81,6 +100,15 @@ namespace Fulbo.Match
             MPActions.None => null,
             _ => null,
         };
+
+        public void ForceChooseAction<Action>(ISelectable feed) where Action : MPAction
+        {
+            if (!TryGetAction(out Action action)) return;
+
+            OnActionChosen(action);
+            if (feed != null) action.Feed(feed);
+            OnActionConfirmed();
+        }
 
         #region Operators
         public static implicit operator bool(Brain brain) => brain != null; 

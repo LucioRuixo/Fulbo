@@ -36,12 +36,14 @@ namespace Fulbo.Match
         {
             InitializeInput();
             Ball.DribblerSetEvent += OnDribblerSet;
+            Ball.DribblerClearedEvent += OnDribblerCleared;
         }
 
         private void OnDestroy()
         {
             Input.SelectedEvent -= OnInputSelection;
             Ball.DribblerSetEvent -= OnDribblerSet;
+            Ball.DribblerClearedEvent -= OnDribblerCleared;
         }
 
         private void Update() => Input.Update();
@@ -56,17 +58,21 @@ namespace Fulbo.Match
         {
             if (player == null) return;
 
-            if (SelectedPlayer)
-            {
-                UnsubscribeFromPlayerEvents();
-                SelectedPlayer.OnUnselected();
-                SelectedPlayer.SetAIBrain();
-            }
+            if (SelectedPlayer) UnselectPlayer();
 
             SelectedPlayer = player;
             SelectedPlayer.OnSelected();
             SelectedPlayer.SetHumanBrain(this);
             SubscribeToPlayerEvents();
+        }
+
+        private void UnselectPlayer()
+        {
+            if (!SelectedPlayer) return;
+
+            UnsubscribeFromPlayerEvents();
+            SelectedPlayer.OnUnselected();
+            SelectedPlayer.SetAIBrain();
         }
 
         private void SubscribeToPlayerEvents()

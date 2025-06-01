@@ -19,6 +19,7 @@ namespace Fulbo.Match
         public List<Square> Squares { get; private set; }
 
         public event Action<Square, MatchPlayer> PlayerMovedToSquareEvent;
+        public event Action<Square, Ball> BallMovedToSquareEvent;
 
         private void OnDestroy()
         {
@@ -30,6 +31,7 @@ namespace Fulbo.Match
                 }
             }
 
+            match.Ball.MovedToSquareEvent -= OnBallAddedToSquare;
             match.TurnManager.PhaseEndedEvent -= OnPhaseEnded;
         }
 
@@ -58,7 +60,11 @@ namespace Fulbo.Match
 
             moveQueue = new Queue<KeyValuePair<Vector2Int, PlayerID>>();
 
-            match.TurnManager.PhaseEndedEvent += OnPhaseEnded;
+            if (match)
+            {
+                match.Ball.MovedToSquareEvent += OnBallAddedToSquare;
+                match.TurnManager.PhaseEndedEvent += OnPhaseEnded;
+            }
         }
 
         private int ClampX(int x) => Mathf.Clamp(x, 0, SquareCount.x - 1);
@@ -127,40 +133,82 @@ namespace Fulbo.Match
 
         public bool IsMoveQueued(Vector2Int squareID, PlayerID playerID) => moveQueue.Any(move => move.Key == squareID && move.Value.Side == playerID.Side);
 
-        public Square[] GetAdjacentSquares(Square reference, int distance = 1, bool includeReferenceSquare = false)
+        public Square[] GetAdjacentSquares(Square reference, out Vector2[] positions, int distance = 1, bool includeReferenceSquare = false, bool clamp = true)
         {
+            positions = null;
+
             if (distance < 1) return null;
 
-            int startX = ClampX(reference.X - distance);
-            int endX = ClampX(reference.X + distance);
-            int startY = ClampY(reference.Y - distance);
-            int endY = ClampY(reference.Y + distance);
+            int startX = reference.X - distance;
+            int endX = reference.X + distance;
+            int startY = reference.Y - distance;
+            int endY = reference.Y + distance;
+            if (clamp)
+            {
+                startX = ClampX(startX);
+                endX = ClampX(endX);
+                startY = ClampY(startY);
+                endY = ClampY(endY);
+            }
 
             Square[] adjacentSquares = new Square[(endX - startX + 1) * (endY - startY + 1) - (includeReferenceSquare ? 0 : 1)];
+            positions = new Vector2[adjacentSquares.Length];
 
             int currenIndex = 0;
-
             for (int y = startY; y <= endY; y++)
             {
                 for (int x = startX; x <= endX; x++)
                 {
-                    Square square = squares2D[x, y];
+                    Square square = null;
+                    if (Exists(new Vector2Int(x, y))) square = squares2D[x, y];
 
                     if (square == reference && !includeReferenceSquare) continue;
 
                     adjacentSquares[currenIndex] = square;
+                    positions[currenIndex] = square != null ? square.Position : new Vector2(Get(Vector2Int.zero).Position.x + SquareSize * x, Get(Vector2Int.zero).Position.y + SquareSize * y);
                     currenIndex++;
                 }
             }
 
             return adjacentSquares;
         }
+
+        public Square[] GetAdjacentSquares(Square reference, int distance = 1, bool includeReferenceSquare = false, bool clamp = true)
+            => GetAdjacentSquares(reference, out Vector2[] positions, distance, includeReferenceSquare, clamp);
+
+        public Square GetRandomAdjacentSquare(Square reference, out Vector2 position, int distance = 1, bool includeReferenceSquare = false, bool clamp = true)
+        {
+            Square[] squares = GetAdjacentSquares(reference, out Vector2[] positions, distance, includeReferenceSquare);
+
+            int index = UnityEngine.Random.Range(0, squares.Length - 1);
+            position = positions[index];
+
+            return squares[index];
+        }
+
+        public Square GetRandomAdjacentSquare(Square reference, int distance = 1, bool includeReferenceSquare = false, bool clamp = true)
+            => GetRandomAdjacentSquare(reference, out Vector2 position, distance, includeReferenceSquare, clamp);
+
+        public bool TryGetRandomAdjacentSquare(Square reference, out Square outSquare, out Vector2 position, int distance = 1, bool includeReferenceSquare = false, bool clamp = true)
+        {
+            outSquare = GetRandomAdjacentSquare(reference, out position, distance, includeReferenceSquare, clamp);
+            return outSquare != null;
+        }
+
+        public bool TryGetRandomAdjacentSquare(Square reference, out Square outSquare, int distance = 1, bool includeReferenceSquare = false, bool clamp = true)
+            => TryGetRandomAdjacentSquare(reference, out outSquare, out Vector2 position, distance, includeReferenceSquare, clamp);
+
+        public Square NextSquareTo(Square a, Square b) => !Exists(a.ID) || !Exists(b.ID) ? null : Get(PathFinding.NextCell(a.ID, b.ID));
+
+        public Square[] Path(Square a, Square b) => !Exists(a.ID) || !Exists(b.ID) ? null : PathFinding.Path(a.ID, b.ID).Select(id => Get(id)).ToArray();
         #endregion
 
         #region Handlers
         private void OnPlayerAddedToSquare(Square square, MatchPlayer player) => PlayerMovedToSquareEvent?.Invoke(square, player);
 
-        private void OnPhaseEnded(TurnManager.Phases phase)
+        private void OnBallAddedToSquare(Square square) => BallMovedToSquareEvent?.Invoke(square, match.Ball);
+
+        private void OnPhaseEnded(MatchPhases phase)
         {
             DisableHighlights();
             ExecuteQueuedMoves();

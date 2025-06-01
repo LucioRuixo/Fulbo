@@ -8,6 +8,7 @@ namespace Fulbo.Match
         private Square[] validSquares;
         private Square targetSquare;
 
+        public override MPActions Type => MPActions.Move;
         public override bool RequiresFeed => true;
 
         private void EnqueueMove(Vector2Int targetSquareID)

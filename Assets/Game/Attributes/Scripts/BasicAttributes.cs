@@ -3,6 +3,7 @@ using UnityEngine;
 namespace Fulbo
 {
     using Attributes;
+    using System.Linq;
 
     public class BasicAttributes
     {
@@ -36,6 +37,6 @@ namespace Fulbo
 
         public int GetScore(AttributeTypes attribute) => GetAttribute(attribute).Score;
 
-        public int GetModifier(AttributeTypes attribute) => GetAttribute(attribute).Modifier;
+        public int[] GetModifier(AttributeTypes attribute) => attribute.GetFlags().Cast<AttributeTypes>().Select(attribute => GetAttribute(attribute).Modifier).ToArray();
     }
 }

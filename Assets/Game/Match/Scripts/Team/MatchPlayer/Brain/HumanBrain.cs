@@ -10,7 +10,7 @@ namespace Fulbo.Match
 
         private HumanPlayer Human => player.Human;
 
-        public HumanBrain(Transform actions, MatchPlayer player, Board board, MPHUD hud) : base(actions, player, board, hud) { }
+        public HumanBrain(Transform actions, MatchPlayer player, Match match, MPHUD hud) : base(actions, player, match, hud) { }
 
         protected override void ProcessChooseAction()
         {
@@ -45,7 +45,7 @@ namespace Fulbo.Match
 
         private void OnScreenSelection(ISelectable selected)
         {
-            bool feedResult = chosenAction.Feed(selected);
+            bool feedResult = targetAction.Feed(selected);
             OnFeedResult(feedResult);
         }
         #endregion

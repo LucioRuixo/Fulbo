@@ -11,7 +11,7 @@ namespace Fulbo.Match
 
         public SkillCheckData() : base() { }
 
-        public SkillCheckData(int die, AttributeTypes attribute, int actorModifier, Difficulties? difficulty = null, int? actorRoll = null) : 
+        public SkillCheckData(int die, AttributeTypes attribute, int[] actorModifier, Difficulties? difficulty = null, int? actorRoll = null) : 
             base(die, attribute, actorModifier, difficulty.HasValue ? (int)difficulty : null, actorRoll)
             => Difficulty = difficulty;
     }

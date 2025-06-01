@@ -4,8 +4,6 @@ using UnityEngine;
 
 namespace Fulbo.Match
 {
-    using Attributes;
-    using System.Collections.Generic;
     using UI;
 
     #region Constants
@@ -149,7 +147,7 @@ namespace Fulbo.Match
             // Attributes
             Attributes = IsGK ?
                 new GKAttributes    (new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 }, new int[] { 20 }) : 
-                new PlayerAttributes(new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 });
+                new PlayerAttributes(new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 1, 10 });
 
             // Squares
             StartSquare = CurrentSquare = Board.Get((Side == Sides.Home ? startPositions_Home : startPositions_Away)[Index]);
@@ -176,7 +174,7 @@ namespace Fulbo.Match
         public Square[] GetValidReceptionSquares() => GetAdjacentSquares(true, MovementDistance).Where(square => square == CurrentSquare || Board.IsEmpty(square.ID, Side)).ToArray();
 
         #region Brain
-        private void InitializeBrain() => brain.Initialize(this, Board, hud);
+        private void InitializeBrain() => brain.Initialize(this, match, hud);
 
         private void UseBrain(Brain brain)
         {
@@ -233,6 +231,7 @@ namespace Fulbo.Match
             if (player != this) return;
 
             CurrentSquare = square;
+            if (match.Ball.Square == CurrentSquare && !match.Ball.Dribbler) match.Ball.SetDribbler(player);
         }
 
         private void OnBrainChooseAction() => ChooseActionEvent?.Invoke();

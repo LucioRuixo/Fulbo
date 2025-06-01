@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace Fulbo.Match
 {
     using Attributes;
@@ -6,13 +8,13 @@ namespace Fulbo.Match
     public class DuelData : RollData
     {
         public int? ContenderRoll { get; set; }
-        public int ContenderModifier { get; private set; }
+        public int[] ContenderModifier { get; private set; }
         public AttributeTypes ContenderAttribute { get; private set; }
 
         public DuelData() : base() { }
 
-        public DuelData(int die, AttributeTypes actorAttribute, int actorModifier, AttributeTypes contenterAttribute, int contenderModifier, int? actorRoll = null, int? contenderRoll = null) :
-            base(die, actorAttribute, actorModifier, contenderRoll + contenderModifier, actorRoll)
+        public DuelData(int die, AttributeTypes actorAttribute, int[] actorModifier, AttributeTypes contenterAttribute, int[] contenderModifier, int? actorRoll = null, int? contenderRoll = null) :
+            base(die, actorAttribute, actorModifier, contenderRoll + contenderModifier.Sum(), actorRoll)
         {
             ContenderRoll = contenderRoll;
             ContenderModifier = contenderModifier;
@@ -24,8 +26,8 @@ namespace Fulbo.Match
     public class DuelResult : RollResult
     {
         public int? ContenderRoll { get; private set; }
-        public int ContenderModifier { get; private set; }
-        public int? ContenderTotal => ContenderRoll + ContenderModifier;
+        public int[] ContenderModifier { get; private set; }
+        public int? ContenderTotal => ContenderRoll + ContenderModifier.Sum();
 
         public AttributeTypes ContenderAttribute { get; private set; }
 
@@ -63,7 +65,7 @@ namespace Fulbo.Match
         public override void SetRoll(RollData data)
         {
             ContenderRoll = (data as DuelData).ContenderRoll;
-            Required = ContenderRoll + ContenderModifier;
+            Required = ContenderRoll + ContenderModifier.Sum();
 
             base.SetRoll(data);
         }

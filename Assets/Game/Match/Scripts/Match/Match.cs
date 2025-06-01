@@ -1,8 +1,11 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace Fulbo.Match
 {
+    using Settings;
+
     #region Classes
     public class MatchInfo
     {
@@ -53,6 +56,7 @@ namespace Fulbo.Match
 
         public Ball Ball => ball;
         public MatchPlayer Dribbler { get; private set; }
+        public MatchPlayer[] AllPlayers { get; private set; }
 
         public bool OnPlay { get; private set; } = false;
 
@@ -63,7 +67,8 @@ namespace Fulbo.Match
         // Play Events
         // --------------------
         public event Action PlayStartEvent;
-        public event Action<MatchPlayer, RollResult> PassEvent;
+        public event Action<MatchPlayer, MatchPlayer, Square> PassMissedEvent;
+        public event Action<MatchPlayer, MatchPlayer, Square, RollResult> PassEvent;
         public event Action<MatchPlayer, RollResult> ShotAttemptEvent;
         public event Action<MatchPlayer> ShotMissedEvent;
         public event Action<MatchPlayer> ShotSavedEvent;
@@ -88,25 +93,50 @@ namespace Fulbo.Match
             pitch.Initialize(this);
             InitializeTeams();
             ball.Initialize(this);
+
+            ball.DribblerSetEvent += OnDribblerSet;
+            SubscribeToPlayerActionEvents();
         }
 
         private void Start() => StartMatch();
 
-        private void OnDestroy() => EndMatch();
+        private void OnDestroy()
+        {
+            EndMatch();
 
+            ball.DribblerSetEvent -= OnDribblerSet;
+            UnsubscribeFromPlayerActionEvents();
+        }
+
+        #region Initialization
         private void InitializeTeams()
         {
             GameObject playerPrefab = Resources.Load<GameObject>(MatchPlayer.PrefabResourcesPath);
 
             home.Initialize(Sides.Home, this, playerPrefab);
             away.Initialize(Sides.Away, this, playerPrefab);
+
+            AllPlayers = Home.Players.Concat(Away.Players).ToArray();
         }
 
+        private void SubscribeToPlayerActionEvents()
+        {
+            MPA_Pass.PassAttemptEvent += OnPassAttempt;
+            MPA_Shoot.ShotAttemptEvent += OnShotAttempt;
+            MPA_Shoot.ShotEvent += OnShot;
+        }
+
+        private void UnsubscribeFromPlayerActionEvents()
+        {
+            MPA_Pass.PassAttemptEvent -= OnPassAttempt;
+            MPA_Shoot.ShotAttemptEvent -= OnShotAttempt;
+            MPA_Shoot.ShotEvent -= OnShot;
+        }
+        #endregion
+
+        #region Match
         private void StartMatch()
         {
-            Ball.DribblerSetEvent += OnDribblerSet;
-            Ball.DribblerClearedEvent += OnDribblerCleared;
-
             MatchStartEvent?.Invoke();
             ResetPlay();
         }
@@ -122,19 +152,24 @@ namespace Fulbo.Match
             Home.ResetPlayers();
             Away.ResetPlayers();
 
-            InitialPlayerSetEvent?.Invoke(Home.GetPlayers()[4]);
+            MatchPlayer initialPlayer = Home.GetPlayers()[4];
+            SetDribbler(initialPlayer);
+            InitialPlayerSetEvent?.Invoke(initialPlayer);
 
             OnPlay = true;
             PlayStartEvent?.Invoke();
         }
 
-        private void EndMatch()
-        {
-            MatchEndEvent?.Invoke();
+        private void EndMatch() => MatchEndEvent?.Invoke();
+        #endregion
 
-            Ball.DribblerSetEvent -= OnDribblerSet;
-            Ball.DribblerClearedEvent -= OnDribblerCleared;
+        #region Ball
+        private void SetDribbler(MatchPlayer dribbler)
+        {
+            Dribbler = dribbler;
+            Ball.SetDribbler(Dribbler);
         }
+        #endregion
 
         #region Queries
         public Halves GetDefendedHalfBySide(Sides side) => side == Sides.Home ? Halves.Left : Halves.Right;
@@ -147,58 +182,54 @@ namespace Fulbo.Match
         public Team GetRival(Sides side) => side == Sides.None ? null : side == Sides.Home ? Away : Home;
         #endregion
 
+        
         #region Handlers
         private void OnDribblerSet(MatchPlayer dribbler)
         {
-            if (!dribbler) return;
+            if (dribbler.Side == Human.Side) return;
 
-            if (Dribbler) OnDribblerCleared();
-
-            Dribbler = dribbler;
-            Dribbler.Brain.GetAction<MPA_Pass>().PassEvent += OnPass;
-            Dribbler.Brain.GetAction<MPA_Shoot>().ShotAttemptEvent += OnShotAttempt;
-            Dribbler.Brain.GetAction<MPA_Shoot>().ShotEvent += OnShot;
+            CallPlayEnd();
         }
 
-        private void OnDribblerCleared()
+        private void OnPassAttempt(MatchPlayer passer, MatchPlayer receiver, Square receptionSquare, RollResult result)
         {
-            if (!Dribbler) return;
+            Ball.ClearDribbler();
 
-            Dribbler.Brain.GetAction<MPA_Pass>().PassEvent -= OnPass;
-            Dribbler.Brain.GetAction<MPA_Shoot>().ShotAttemptEvent -= OnShotAttempt;
-            Dribbler.Brain.GetAction<MPA_Shoot>().ShotEvent -= OnShot;
-            Dribbler = null;
+            if (result.Failed)
+            {
+                bool passLandedInsidePitch = Pitch.Board.TryGetRandomAdjacentSquare(receptionSquare, out Square landingSquare, out Vector2 landingPosition, MatchSettings.MissedPassLandingDistance, false, false);
+
+                if (passLandedInsidePitch)
+                {
+                    if (landingSquare == receiver.CurrentSquare) SetDribbler(receiver);
+                    else Ball.SetSquare(landingSquare);
+                }
+                else Ball.SetLoosePosition(landingPosition);
+
+                PassMissedEvent?.Invoke(passer, receiver, receptionSquare);
+                if (!passLandedInsidePitch) CallPlayEnd();
+            }
+            else SetDribbler(receiver);
         }
-
-        private void OnPass(MatchPlayer passer, MatchPlayer receiver, RollResult result) => PassEvent?.Invoke(receiver, result);
 
         private void OnShotAttempt(MatchPlayer kicker, RollResult result)
         {
-            ShotAttemptEvent?.Invoke(kicker, result);
-            if (result.Failed) OnShotMissed(kicker);
-        }
+            Ball.ClearDribbler();
 
-        private void OnShotMissed(MatchPlayer kicker)
-        {
-            ShotMissedEvent.Invoke(kicker);
-            CallPlayEnd();
+            ShotAttemptEvent?.Invoke(kicker, result);
+
+            if (result.Failed)
+            {
+                ShotMissedEvent.Invoke(kicker);
+                CallPlayEnd();
+            }
         }
 
         private void OnShot(MatchPlayer kicker, RollResult result)
         {
-            if (result.Failed) OnShotSaved(kicker);
-            else OnGoal(kicker);
-        }
+            if (result.Failed) ShotSavedEvent.Invoke(kicker);
+            else GoalEvent?.Invoke(kicker.Side);
 
-        private void OnShotSaved(MatchPlayer kicker)
-        {
-            ShotSavedEvent.Invoke(kicker);
-            CallPlayEnd();
-        }
-
-        private void OnGoal(MatchPlayer scorer)
-        {
-            GoalEvent?.Invoke(scorer.Side);
             CallPlayEnd();
         }
 

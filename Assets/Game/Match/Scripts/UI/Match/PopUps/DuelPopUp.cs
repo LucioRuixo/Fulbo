@@ -19,10 +19,10 @@ namespace Fulbo.Match.UI
         {
             DuelResult duelResult = result as DuelResult;
 
-            rollsContainer.GetChild(0).GetComponent<TMP_Text>().text = RollString(result.Attribute, result.Modifier, result.Roll);
+            SetRollsText(duelResult.Attribute, duelResult.Modifier, duelResult.Roll, rollsContainer);
             total.text = NumberToString(duelResult.Total);
 
-            contenderRollsContainer.GetChild(0).GetComponent<TMP_Text>().text = RollString(duelResult.ContenderAttribute, duelResult.ContenderModifier, duelResult.ContenderRoll);
+            SetRollsText(duelResult.ContenderAttribute, duelResult.ContenderModifier, duelResult.ContenderRoll, contenderRollsContainer);
             contenderTotal.text = NumberToString(duelResult.ContenderTotal);
 
             OnContentUpdated();

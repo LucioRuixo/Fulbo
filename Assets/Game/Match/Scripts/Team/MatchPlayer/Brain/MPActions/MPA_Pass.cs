@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Fulbo.Match
 {
+    using Fulbo.Match.UI;
+    using Settings;
+
     public class MPA_Pass : MPAction
     {
         private List<Square> validSquares;
@@ -15,13 +18,17 @@ namespace Fulbo.Match
 
         private MatchPlayer receiver;
 
+        private PassAttempt passAttempt;
+        private SkillCheckPopUp passAttemptPopUp;
+
         private bool completeUI;
 
         private bool ReadyToConfirm => receiver && receptionSquare;
 
+        public override MPActions Type => MPActions.Pass;
         public override bool RequiresFeed => true;
 
-        public event Action<MatchPlayer, MatchPlayer, RollResult> PassEvent;
+        public static event Action<MatchPlayer, MatchPlayer, Square, RollResult> PassAttemptEvent;
 
         private void OnSelectReceiver()
         {
@@ -36,8 +43,7 @@ namespace Fulbo.Match
         {
             this.receiver = receiver;
 
-            receptionSquare = receiver.CurrentSquare;
-            UpdateSquares(receptionSquare);
+            SetReceptionSquare(receiver.CurrentSquare);
 
             hud.Arrow.Show();
             hud.Arrow.Point(player.Position, targetSquare.Position);
@@ -59,29 +65,42 @@ namespace Fulbo.Match
             validSquares = teamSquares;
             OnSelectReceiver();
 
+            passAttempt?.SetDisplayed(false);
+
             hud.Arrow.Hide();
         }
 
         private void SetReceptionSquare(Square receptionSquare)
         {
-            this.receptionSquare = receptionSquare;
-            UpdateSquares(receptionSquare);
+            passAttempt?.SetDisplayed(false);
 
-            receiver.HUD.Arrow.Show();
-            receiver.HUD.Arrow.Point(receiver.Position, receptionSquare.Position);
+            this.receptionSquare = receptionSquare;
+            UpdateReceptionSquares(receptionSquare);
+
+            passAttempt = new PassAttempt(player, MatchSettings.GetPassDifficulty(player, this.receptionSquare));
+            passAttemptPopUp = passAttempt.PopUp;
+
+            if (receptionSquare != receiver.CurrentSquare)
+            {
+                receiver.HUD.Arrow.Show();
+                receiver.HUD.Arrow.Point(receiver.Position, receptionSquare.Position);
+            }
+            else receiver.HUD.Arrow.Hide();
         }
 
         private void ClearReceptionSquare()
         {
             receptionSquare = receiver.CurrentSquare;
-            UpdateSquares(receptionSquare);
+            UpdateReceptionSquares(receptionSquare);
+
+            passAttempt?.SetDisplayed(false);
 
             if (completeUI) foreach (Square square in receptionSquares) square.SetHighlight(true);
 
             receiver.HUD.Arrow.Hide();
         }
 
-        private void UpdateSquares(Square receptionSquare)
+        private void UpdateReceptionSquares(Square receptionSquare)
         {
             if (!receiver) return;
 
@@ -116,26 +135,32 @@ namespace Fulbo.Match
             OnSelectReceiver();
         }
 
+        public override void OnConfirmed()
+        {
+            passAttempt = SkillCheck.RollSC(passAttempt);
+            passAttemptPopUp.UpdateContent(passAttempt.Result);
+        }
+
         public override void Execute()
         {
-            if (receptionSquare != receiver.CurrentSquare) board.EnqueueMove(receptionSquare.ID, receiver.ID);
-            PassEvent?.Invoke(player, receiver, new RollResult());
+            if (passAttempt.Result.Succeeded && receptionSquare != receiver.CurrentSquare) board.EnqueueMove(receptionSquare.ID, receiver.ID);
+            PassAttemptEvent?.Invoke(player, receiver, receptionSquare, passAttempt.Result);
         }
 
         public override void OnExit()
         {
-            foreach (Square square in teamSquares) square.SetHighlight(false);
-            receiver.HUD.Arrow.Hide();
-
-            validSquares = null;
-            targetSquare = null;
-
-            teamSquares = receptionSquares = null;
-            receptionSquare = null;
-
-            receiver = null;
-
             hud.Arrow.Hide();
+            if (receiver) receiver.HUD.Arrow.Hide();
+
+            if (receptionSquare) receptionSquare.SetHighlight(false);
+            if (teamSquares != null) foreach (Square square in teamSquares) square.SetHighlight(false);
+            if (receptionSquares != null) foreach (Square square in receptionSquares) square.SetHighlight(false);
+
+            passAttempt?.SetDisplayed(false);
+
+            validSquares = teamSquares = receptionSquares = null;
+            targetSquare = receptionSquare = null;
+            receiver = null;
         }
     }
 }

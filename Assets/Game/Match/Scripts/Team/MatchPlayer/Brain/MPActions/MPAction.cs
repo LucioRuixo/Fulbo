@@ -20,6 +20,7 @@ namespace Fulbo.Match
         protected Board board;
         protected MPHUD hud;
 
+        public abstract MPActions Type { get; }
         public abstract bool RequiresFeed { get; }
 
         public void Initialize(MatchPlayer player, Board board, MPHUD hud)

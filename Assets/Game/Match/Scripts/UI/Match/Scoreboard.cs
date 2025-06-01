@@ -33,8 +33,8 @@ namespace Fulbo.Match.UI
             homeName.text = Team.GetAbbreviation(Sides.Home);
             awayName.text = Team.GetAbbreviation(Sides.Away);
 
-            homeColor.color = Team.GetMaterial(Sides.Home).color;
-            awayColor.color = Team.GetMaterial(Sides.Away).color;
+            homeColor.color = Team.GetColor(Sides.Home);
+            awayColor.color = Team.GetColor(Sides.Away);
         }
 
         private void OnDestroy()

@@ -13,10 +13,11 @@ namespace Fulbo.Match
         private Shot shot;
         private DuelPopUp shotPopUp;
 
+        public override MPActions Type => MPActions.Shoot;
         public override bool RequiresFeed => false;
 
-        public event Action<MatchPlayer, RollResult> ShotAttemptEvent;
-        public event Action<MatchPlayer, RollResult> ShotEvent;
+        public static event Action<MatchPlayer, RollResult> ShotAttemptEvent;
+        public static event Action<MatchPlayer, RollResult> ShotEvent;
 
         public override void OnChosen(bool completeUI)
         {
@@ -51,11 +52,14 @@ namespace Fulbo.Match
         public override void OnExit()
         {
             hud.Arrow.Hide();
-            if (shotAttempt != null) shotAttempt.SetDisplayed(false);
-            if (shot != null) shot.SetDisplayed(false);
+
+            shotAttempt?.SetDisplayed(false);
+            shot?.SetDisplayed(false);
 
             shotAttempt = null;
+            shot = null;
             shotAttemptPopUp = null;
+            shotPopUp = null;
         }
     }
 }

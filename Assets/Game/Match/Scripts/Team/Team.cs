@@ -64,11 +64,45 @@ namespace Fulbo.Match
             }
         }
 
-        public List<MatchPlayer> GetPlayers(MatchPlayer[] exclude = null) => Players.Where(player => exclude == null || !exclude.Contains(player)).ToList();
+        public MatchPlayer[] GetPlayers(MatchPlayer[] exclude = null) => Players.Where(player => exclude == null || !exclude.Contains(player)).ToArray();
+
+        public MatchPlayer[] GetClosestPlayersToSquare(Square square, MatchPlayer[] exclude = null)
+        {
+            List<MatchPlayer> closestPlayers = new List<MatchPlayer>();
+
+            float smallestDistance = float.MaxValue;
+            MatchPlayer[] players = exclude == null ? Players.ToArray() : Players.Except(exclude).ToArray();
+            foreach (MatchPlayer player in players)
+            {
+                float distance = MatchUtils.Distance(player.CurrentSquare, square);
+
+                if (distance == smallestDistance) closestPlayers.Add(player);
+                else if (distance < smallestDistance)
+                {
+                    closestPlayers = new List<MatchPlayer>() { player };
+                    smallestDistance = distance;
+                }
+            }
+
+            return closestPlayers.ToArray();
+        }
+
+        public MatchPlayer GetRandomClosestPlayerToSquare(Square square, MatchPlayer[] exclude = null)
+        {
+            MatchPlayer[] closestPlayers = GetClosestPlayersToSquare(square, exclude);
+            return closestPlayers[Random.Range(0, closestPlayers.Length)];
+        }
 
         // Debug
         // --------------------
         public static string GetAbbreviation(Sides side) => side == Sides.None ? null : side.ToString().Abbreviate();
+
+        public static Color GetColor(Sides side)
+        {
+            if (side == Sides.Home) return Color.blue;
+            else if (side == Sides.Away) return Color.red;
+            else return Color.white;
+        }
 
         public static Material GetMaterial(Sides side)
         {

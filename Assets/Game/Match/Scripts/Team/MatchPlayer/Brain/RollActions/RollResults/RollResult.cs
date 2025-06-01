@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace Fulbo.Match
 {
     using Attributes;
@@ -8,12 +10,12 @@ namespace Fulbo.Match
         public int Die { get; private set; }
         public int? Required { get; private set; }
         public int? Roll { get; set; }
-        public int Modifier { get; private set; }
+        public int[] Modifier { get; private set; }
         public AttributeTypes Attribute { get; private set; }
 
         public RollData() { }
 
-        public RollData(int die, AttributeTypes attribute, int actorModifier, int? required = null, int? actorRoll = null)
+        public RollData(int die, AttributeTypes attribute, int[] actorModifier, int? required = null, int? actorRoll = null)
         {
             Die = die;
             Required = required;
@@ -30,8 +32,8 @@ namespace Fulbo.Match
         public int? Required { get; protected set; }
 
         public int? Roll { get; protected set; }
-        public int Modifier { get; protected set; }
-        public int? Total => Roll + Modifier;
+        public int[] Modifier { get; protected set; }
+        public int? Total => Roll + Modifier.Sum();
 
         public AttributeTypes Attribute { get; protected set; }
 

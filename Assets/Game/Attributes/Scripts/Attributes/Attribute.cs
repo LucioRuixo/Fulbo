@@ -4,28 +4,29 @@ using UnityEngine;
 namespace Fulbo.Attributes
 {
     #region Enumerators
+    [Flags]
     public enum AttributeTypes
     {
-        // 0 -> Mental
-        Composture = 0, 
-        Determination, 
-        Solidarity, 
-        Charisma, 
+        // 1 << 1 -> Mental
+        Composture = 1 << 1,
+        Determination = 1 << 2,
+        Solidarity = 1 << 3,
+        Charisma = 1 << 4,
 
-        // 50 -> Physical
-        Speed = 50, 
-        Strength, 
-        Endurance, 
-        Aerial,
+        // 1 << 11 -> Physical
+        Speed = 1 << 11,
+        Strength = 1 << 12,
+        Endurance = 1 << 13,
+        Aerial = 1 << 14,
 
-        // 100 -> Technical
-        Dribbling = 100, 
-        Passing, 
-        Shooting, 
-        Tackling, 
+        // 1 << 21 -> Technical
+        Dribbling = 1 << 21,
+        Passing = 1 << 22,
+        Shooting = 1 << 23,
+        Tackling = 1 << 24,
 
-        // 150 -> GK
-        Saving = 150
+        // 1 << 31 -> GK
+        Saving = 1 << 31
     }
     #endregion
 

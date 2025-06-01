@@ -17,11 +17,11 @@ namespace Fulbo.Match.UI
         {
             SkillCheckResult skillCheckResult = result as SkillCheckResult;
 
-            rollsContainer.GetChild(0).GetComponent<TMP_Text>().text = RollString(result.Attribute, result.Modifier, result.Roll);
+            SetRollsText(result.Attribute, result.Modifier, result.Roll, rollsContainer);
             total.text = NumberToString(skillCheckResult.Total);
 
             required.text = skillCheckResult.Required.ToString();
-            difficulty.text = skillCheckResult.Difficulty.ToString();
+            difficulty.text = skillCheckResult.Difficulty.Value.ToFormattedString();
 
             OnContentUpdated();
         }

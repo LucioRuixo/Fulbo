@@ -21,23 +21,36 @@ namespace Fulbo.Match
 
         public MatchPlayer HomePlayer { get; private set; }
         public MatchPlayer AwayPlayer { get; private set; }
+        public MatchPlayer OnlyContainedPlayer => !ContainsOnePlayer ? null : (HomePlayer ?? AwayPlayer);
+
+        public bool ContainsPlayers => HomePlayer || AwayPlayer;
+        public bool ContainsOnePlayer => (HomePlayer && !AwayPlayer) || (AwayPlayer && !HomePlayer);
+        public bool ContainsTwoPlayers => HomePlayer && AwayPlayer;
+        public bool ContainsBall { get; private set; } = false;
 
         public event Action<Square, MatchPlayer> PlayerAddedEvent;
 
         private void OnDestroy()
         {
-            if (Board) Board.PlayerMovedToSquareEvent += OnPlayerMovedToSquare;
+            if (Board)
+            {
+                Board.PlayerMovedToSquareEvent -= OnPlayerMovedToSquare;
+                Board.BallMovedToSquareEvent -= OnBallMovedToSquare;
+            }
         }
 
-        public void Initialize(int x, int y, Board container)
+        public void Initialize(int x, int y, Board board)
         {
-            color = (mesh = GetComponent<MeshRenderer>()).material.color;
+            color = (mesh = GetComponent<MeshRenderer>()).sharedMaterial.color;
 
-            X = x;
-            Y = y;
-            ID = new Vector2Int(X, Y);
+            ID = new Vector2Int(X = x, Y = y);
 
-            (Board = container).PlayerMovedToSquareEvent += OnPlayerMovedToSquare;
+            Board = board;
+            if (Board)
+            {
+                Board.PlayerMovedToSquareEvent += OnPlayerMovedToSquare;
+                Board.BallMovedToSquareEvent += OnBallMovedToSquare;
+            }
         }
 
         private bool IsInSquare(MatchPlayer player) => player == HomePlayer || player == AwayPlayer;
@@ -107,6 +120,18 @@ namespace Fulbo.Match
                 AwayPlayer = null;
                 if (HomePlayer) HomePlayer.Position = Position;
             }
+        }
+
+        private void OnBallMovedToSquare(Square square, Ball ball)
+        {
+            ContainsBall = square == this;
+
+            if (square == this)
+            {
+                if (HomePlayer) HomePlayer.Position = CalculateOffsetPosition(HomePlayer);
+                if (AwayPlayer) AwayPlayer.Position = CalculateOffsetPosition(AwayPlayer);
+            }
+            else if (ContainsOnePlayer) OnlyContainedPlayer.Position = CalculateOffsetPosition(OnlyContainedPlayer);
         }
         #endregion
     }

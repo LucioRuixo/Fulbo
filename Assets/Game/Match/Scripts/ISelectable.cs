@@ -11,7 +11,7 @@ namespace Fulbo.Match
     {
         public static MatchPlayer AsPlayer(this ISelectable selectable)
         {
-            MPBody body = selectable as MPBody;
+            Legacy_MPBody body = selectable as Legacy_MPBody;
             return body != null ? body.Player : null;
         }
 

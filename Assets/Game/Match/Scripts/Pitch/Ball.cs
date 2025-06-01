@@ -7,38 +7,29 @@ namespace Fulbo.Match
     {
         private Match match;
 
+        private Square looseSquare;
+
         private Vector3? TargetPosition => Dribbler ? Dribbler.BallReference : null;
 
         public Vector3 Position { get => transform.position; private set => transform.position = value; }
+        public Square Square => Dribbler ? Dribbler.CurrentSquare : looseSquare;
         public MatchPlayer Dribbler { get; private set; }
 
+        public bool Dribbled => Dribbler;
+        public bool Loose => !Dribbled;
+
         public event Action<MatchPlayer> DribblerSetEvent;
-        public event Action DribblerClearedEvent;
+        public event Action<MatchPlayer> DribblerClearedEvent;
+        public event Action<Square> MovedToSquareEvent;
 
         private void Update()
         {
             if (TargetPosition.HasValue) transform.position = TargetPosition.Value;
         }
 
-        private void OnDestroy()
-        {
-            if (match)
-            {
-                match.InitialPlayerSetEvent -= SetDribbler;
-                match.PassEvent -= OnPass;
-                match.PlayEndEvent -= OnPlayEnd;
-            }
-        }
+        public void Initialize(Match match) => this.match = match;
 
-        public void Initialize(Match match)
-        {
-            this.match = match;
-            match.InitialPlayerSetEvent += SetDribbler;
-            match.PassEvent += OnPass;
-            match.PlayEndEvent += OnPlayEnd;
-        }
-
-        private void SetDribbler(MatchPlayer dribbler)
+        public void SetDribbler(MatchPlayer dribbler)
         {
             if (!dribbler)
             {
@@ -50,21 +41,37 @@ namespace Fulbo.Match
             DribblerSetEvent?.Invoke(Dribbler);
         }
 
-        private void ClearDribbler()
+        public void ClearDribbler()
         {
+            if (!Dribbler) return;
+
+            MatchPlayer previousDribbler = Dribbler;
             Dribbler = null;
 
-            DribblerClearedEvent?.Invoke();
+            SetSquare(previousDribbler.CurrentSquare);
+
+            DribblerClearedEvent?.Invoke(previousDribbler);
+        }
+
+        public void SetSquare(Square square)
+        {
+            if (Dribbler) return;
+
+            looseSquare = square;
+            Position = square.Position;
+
+            MovedToSquareEvent?.Invoke(Square);
+        }
+
+        public void SetLoosePosition(Vector2 position)
+        {
+            ClearDribbler();
+            looseSquare = null;
+
+            Position = position;
         }
 
         #region Handlers
-        private void OnPass(MatchPlayer receiver, RollResult result)
-        {
-            if (!receiver) return;
-
-            SetDribbler(receiver);
-        }
-
         private void OnPlayEnd()
         {
             if (!Dribbler) return;
