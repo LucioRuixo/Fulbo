@@ -6,7 +6,7 @@ namespace Fulbo.Match.UI
 {
     using static Input;
 
-    public class ActionMenu : Menu
+    public class ActionMenu : MatchMenu
     {
         [SerializeField] private GameObject actionButtonsContainer;
         [SerializeField] private GameObject navigationButtonsContainer;

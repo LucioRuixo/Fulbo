@@ -146,8 +146,8 @@ namespace Fulbo.Match
 
             // Attributes
             Attributes = IsGK ?
-                new GKAttributes    (new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 }, new int[] { 20 }) : 
-                new PlayerAttributes(new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 1, 10 });
+                new GKAttributes    (new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 }, new int[] { 10 }) : 
+                new PlayerAttributes(new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 }, new int[] { 10, 10, 10, 10 });
 
             // Squares
             StartSquare = CurrentSquare = Board.Get((Side == Sides.Home ? startPositions_Home : startPositions_Away)[Index]);
@@ -206,7 +206,12 @@ namespace Fulbo.Match
         #endregion
 
         #region ISelectable
-        public void OnSelected() => SelectedEvent?.Invoke();
+        public void OnSelected()
+        {
+            if (MatchMenu.BlockingPointer) return;
+
+            SelectedEvent?.Invoke();
+        }
 
         public void OnUnselected() => UnselectedEvent?.Invoke();
         #endregion

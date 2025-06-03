@@ -3,6 +3,8 @@ using UnityEngine;
 
 namespace Fulbo.Match
 {
+    using UI;
+
     using UnityInput = UnityEngine.Input;
 
     public class Input
@@ -60,6 +62,8 @@ namespace Fulbo.Match
         #region Mouse Input
         private void PollMouseInput()
         {
+            if (MatchMenu.BlockingPointer) return;
+
             ThrowRaycast();
             PollLeftClickInput();
         }
