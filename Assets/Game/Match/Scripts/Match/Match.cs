@@ -59,6 +59,8 @@ namespace Fulbo.Match
         public MatchPlayer[] AllPlayers { get; private set; }
 
         public bool OnPlay { get; private set; } = false;
+        public Sides PossessingSide => Dribbler ? Dribbler.Side : Sides.None;
+        public Sides LastPossessingSide { get; private set; } = Sides.None;
 
         public MatchInfo Info { get; private set; }
 
@@ -95,6 +97,7 @@ namespace Fulbo.Match
             ball.Initialize(this);
 
             ball.DribblerSetEvent += OnDribblerSet;
+            ball.DribblerClearedEvent += OnDribblerCleared;
             SubscribeToPlayerActionEvents();
         }
 
@@ -105,6 +108,7 @@ namespace Fulbo.Match
             EndMatch();
 
             ball.DribblerSetEvent -= OnDribblerSet;
+            ball.DribblerClearedEvent -= OnDribblerCleared;
             UnsubscribeFromPlayerActionEvents();
         }
 
@@ -186,10 +190,18 @@ namespace Fulbo.Match
         #region Handlers
         private void OnDribblerSet(MatchPlayer dribbler)
         {
+            Dribbler = dribbler;
+
+            if (!Dribbler) return;
+
+            LastPossessingSide = Dribbler.Side;
+
             if (dribbler.Side == Human.Side) return;
 
             CallPlayEnd();
         }
+
+        private void OnDribblerCleared(MatchPlayer previousDribbler) => Dribbler = null;
 
         private void OnPassAttempt(MatchPlayer passer, MatchPlayer receiver, Square receptionSquare, RollResult result)
         {
@@ -204,7 +216,7 @@ namespace Fulbo.Match
                     if (landingSquare == receiver.CurrentSquare) SetDribbler(receiver);
                     else Ball.SetSquare(landingSquare);
                 }
-                else Ball.SetLoosePosition(landingPosition);
+                else Ball.SetFreePosition(landingPosition);
 
                 PassMissedEvent?.Invoke(passer, receiver, receptionSquare);
                 if (!passLandedInsidePitch) CallPlayEnd();

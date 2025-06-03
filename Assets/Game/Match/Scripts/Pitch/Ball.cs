@@ -20,6 +20,7 @@ namespace Fulbo.Match
 
         public event Action<MatchPlayer> DribblerSetEvent;
         public event Action<MatchPlayer> DribblerClearedEvent;
+        public event Action LooseEvent;
         public event Action<Square> MovedToSquareEvent;
 
         private void Update()
@@ -63,7 +64,7 @@ namespace Fulbo.Match
             MovedToSquareEvent?.Invoke(Square);
         }
 
-        public void SetLoosePosition(Vector2 position)
+        public void SetFreePosition(Vector2 position)
         {
             ClearDribbler();
             looseSquare = null;
