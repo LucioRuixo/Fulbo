@@ -44,8 +44,11 @@ namespace Fulbo.Match
 
         [SerializeField] private BrainMB brain;
         [SerializeField] private MPBody body;
-        [SerializeField] private Transform ballReference;
         [SerializeField] private MPHUD hud;
+
+        [Space]
+
+        [SerializeField] private Transform ballReference;
 
         private Match match;
 
@@ -66,6 +69,9 @@ namespace Fulbo.Match
         public Goal AttackedGoal => Team.AttackedGoal;
         public Vector3 AttackDirection => Team.AttackDirection;
         public Team Rival => Team.Rival;
+
+        public ActionPoints ActionPoints { get; private set; }
+        public Focus Focus { get; private set; }
 
         public PlayerAttributes Attributes { get; private set; }
         // --------------------
@@ -162,6 +168,10 @@ namespace Fulbo.Match
             InitializeBrain();
             SetAIBrain();
             // --------------------
+
+            // Actions
+            ActionPoints = new ActionPoints(this, match.TurnManager);
+            Focus = new Focus(this, match.TurnManager);
 
             // HUD
             hud.Initialize(this);

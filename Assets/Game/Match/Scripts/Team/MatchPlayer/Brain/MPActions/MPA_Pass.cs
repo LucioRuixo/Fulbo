@@ -26,6 +26,7 @@ namespace Fulbo.Match
         private bool ReadyToConfirm => receiver && receptionSquare;
 
         public override MPActions Type => MPActions.Pass;
+        public override int APCost => 1;
         public override bool RequiresFeed => true;
 
         public static event Action<MatchPlayer, MatchPlayer, Square, RollResult> PassAttemptEvent;

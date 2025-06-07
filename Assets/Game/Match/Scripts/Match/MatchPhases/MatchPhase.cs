@@ -123,7 +123,7 @@ namespace Fulbo.Match
         }
 
         #region Handlers
-        private void OnPlayerActionConfirmed(MatchPlayer player)
+        private void OnPlayerActionConfirmed(MatchPlayer player, MPAction action)
         {
             player.Brain.ActionConfirmedEvent -= OnPlayerActionConfirmed;
             PlayerActionConfirmedEvent?.Invoke(player);

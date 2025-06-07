@@ -27,7 +27,7 @@ namespace Fulbo.Match
         public event Action ChooseActionEvent;
         public event Action<bool> FeedResultEvent;
         public event Action<MatchPlayer> ActionChosenEvent;
-        public event Action<MatchPlayer> ActionConfirmedEvent;
+        public event Action<MatchPlayer, MPAction> ActionConfirmedEvent;
 
         public Brain(Transform actions, MatchPlayer player, Match match, MPHUD hud)
         {
@@ -64,9 +64,10 @@ namespace Fulbo.Match
         {
             actionQueue.Enqueue(targetAction.Type);
             targetAction.OnConfirmed();
-            targetAction = null;
 
-            ActionConfirmedEvent?.Invoke(player);
+            ActionConfirmedEvent?.Invoke(player, targetAction);
+
+            targetAction = null;
         }
 
         public void ChooseAction()

@@ -10,6 +10,7 @@ namespace Fulbo.Match.UI
 
         [SerializeField] private Ring ring;
         [SerializeField] private Arrow arrow;
+        [SerializeField] private FocusBar focusBar;
         
         private MatchPlayer player;
 
@@ -33,6 +34,8 @@ namespace Fulbo.Match.UI
 
             float arrowSize = player.Pitch.Length / player.Pitch.Board.SquareCount.x;
             arrow.Initialize(arrowSize, ArrowHeight);
+
+            focusBar.Initialize(player);
         }
 
         #region Handlers

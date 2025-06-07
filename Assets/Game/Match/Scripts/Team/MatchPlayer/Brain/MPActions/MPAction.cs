@@ -21,7 +21,10 @@ namespace Fulbo.Match
         protected MPHUD hud;
 
         public abstract MPActions Type { get; }
+        public abstract int APCost { get; }
         public abstract bool RequiresFeed { get; }
+
+        public bool CanBeChosen => player.ActionPoints.Count >= APCost;
 
         public void Initialize(MatchPlayer player, Board board, MPHUD hud)
         {

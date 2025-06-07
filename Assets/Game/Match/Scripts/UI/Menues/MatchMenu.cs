@@ -10,7 +10,7 @@ namespace Fulbo.Match.UI
 
         public static bool BlockingPointer { get; private set; }
 
-        public void Initialize(HumanPlayer human) => this.human = human;
+        public virtual void Initialize(HumanPlayer human) => this.human = human;
 
         public virtual void Enable() => gameObject.SetActive(true);
 

@@ -47,7 +47,7 @@ namespace Fulbo.Match
 
         private void OnDestroy()
         {
-            foreach (MatchPhase phase in phases) phase.ExecutionEndedEvent -= OnPhaseExecutionEnded;
+            if (phases != null) foreach (MatchPhase phase in phases) phase.ExecutionEndedEvent -= OnPhaseExecutionEnded;
 
             match.InitialPlayerSetEvent -= OnInitialPlayerSet;
             match.PlayStartEvent -= OnPlayStart;

@@ -8,6 +8,10 @@ namespace Fulbo.Match.UI
 
     public class ActionMenu : MatchMenu
     {
+        [SerializeField] private ActionPointIcons apIcons;
+
+        [Space]
+
         [SerializeField] private GameObject actionButtonsContainer;
         [SerializeField] private GameObject navigationButtonsContainer;
 
@@ -20,6 +24,14 @@ namespace Fulbo.Match.UI
         public event Action<MPActions> ActionChosenEvent;
         public event Action<MPActions> ActionCanceledEvent;
         public event Action<MPActions> ActionConfirmedEvent;
+
+        public override void Initialize(HumanPlayer human)
+        {
+            base.Initialize(human);
+
+            apIcons.Initialize(human);
+            foreach (ActionButton button in actionButtonsContainer.GetComponentsInChildren<ActionButton>()) button.Initialize(human);
+        }
 
         public override void Enable()
         {

@@ -25,7 +25,9 @@ namespace Fulbo.Match
         public Camera View => mainCamera;
 
         public event Action<MatchPlayer> PlayerSelectedEvent;
+        public event Action<MatchPlayer> PlayerUnselectedEvent;
 
+        public event Action ActionMenuEnabledEvent;
         public event Action<MPActions> ActionChosenEvent;
         public event Action<MPActions> ActionCanceledEvent;
         public event Action<MPActions> ActionConfirmedEvent;
@@ -64,6 +66,8 @@ namespace Fulbo.Match
             SelectedPlayer.OnSelected();
             SelectedPlayer.SetHumanBrain(this);
             SubscribeToPlayerEvents();
+
+            PlayerSelectedEvent?.Invoke(player);
         }
 
         private void UnselectPlayer()
@@ -73,6 +77,9 @@ namespace Fulbo.Match
             UnsubscribeFromPlayerEvents();
             SelectedPlayer.OnUnselected();
             SelectedPlayer.SetAIBrain();
+
+            PlayerUnselectedEvent?.Invoke(SelectedPlayer);
+            SelectedPlayer = null;
         }
 
         private void SubscribeToPlayerEvents()
@@ -101,6 +108,8 @@ namespace Fulbo.Match
             uiManager.ActionMenu.ActionChosenEvent  += OnUIActionChosen;
             uiManager.ActionMenu.ActionCanceledEvent  += OnUIActionCanceled;
             uiManager.ActionMenu.ActionConfirmedEvent += OnUIActionConfirmed;
+
+            ActionMenuEnabledEvent?.Invoke();
         }
 
         private void OnUIActionChosen(MPActions action)

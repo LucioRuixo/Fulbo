@@ -14,6 +14,7 @@ namespace Fulbo.Match
         private DuelPopUp shotPopUp;
 
         public override MPActions Type => MPActions.Shoot;
+        public override int APCost => 2;
         public override bool RequiresFeed => false;
 
         public static event Action<MatchPlayer, RollResult> ShotAttemptEvent;
@@ -39,7 +40,7 @@ namespace Fulbo.Match
 
             if (shotAttempt.Result.Failed) return;
 
-            shot = DuelRoll.RollDuel(shot, new DuelData() { Roll = shotAttempt.Result.Roll });
+            shot = DuelRoll.RollDuel(shot);
             shotPopUp.UpdateContent(shot.Result);
         }
 
